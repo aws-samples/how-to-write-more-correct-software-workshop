@@ -1178,3 +1178,152 @@ so lets just add them all in and take a look
   {}
 
 ```
+
+Given everything these are reasonably simple
+expressions of the specifications in Dafny.
+
+I will note that `&&` binds stronger than `==>`.
+In fact, in Dafny the length of the express its strength.
+This means that if you try to compose multiple `==>` together
+it is best to use parentheses.
+Since each `ensures` is only a single statement
+I've left them out.
+
+Let's run `duvet` again
+
+```
+make duvet
+```
+
+After we refresh the report,
+we can now see more coverage in our report.
+For complicated project with lots of requirements
+This process helps everyone.
+From this we can see that we are almost done.
+
+## Step 24
+
+The home stretch.
+All we have left is `MultiRegionAwsKmsIdentifier?`.
+
+We start as before with a `lemma`
+
+```dafny
+
+  lemma MultiRegionAwsKmsIdentifier?Correct(s: string)
+  {}
+
+```
+
+We have started with a `string` because our requirements
+are described as strings.
+Incidentally this is because when you configure AWS KMS keys
+they are strings.
+
+However our `predicate` takes an `AwsKmsIdentifier`.
+This means that not _every_ string is valid input.
+We want to shape our input.
+Instead of dealing with every possible string,
+we want to deal with every string that could be a `AwsKmsIdentifier`.
+
+This is called a precondition.
+Something that MUST be true *before* the function executes.
+Dafny expresses this with the keyword `requires`
+
+```dafny
+
+  lemma MultiRegionAwsKmsIdentifier?Correct(s: string)
+    requires ParseAwsKmsIdentifier(s).Success?
+  {}
+
+```
+
+Now everywhere we can assume that the string `s`
+is a valid `AwsKmsIdentifier`!
+This simplifies our first requirement
+
+```dafny
+
+  lemma MultiRegionAwsKmsIdentifier?Correct(s: string)
+    requires ParseAwsKmsIdentifier(s).Success?
+
+    //= compliance/framework/aws-kms/aws-kms-key-arn.txt#2.9
+    //= type=implication
+    //# If the input starts with "arn:", this MUST return the output of
+    //# identifying an an AWS KMS multi-Region ARN (aws-kms-key-
+    //# arn.md#identifying-an-an-aws-kms-multi-region-arn) called with this
+    //# input.
+    ensures "arn:" <= s
+      ==>
+        var arnIdentifier := ParseAwsKmsIdentifier(s).value;
+        MultiRegionAwsKmsIdentifier?(arnIdentifier) == MultiRegionAwsKmsArn?(arnIdentifier.a)
+  {}
+
+```
+
+Dafny uses the fact that the string `ParseAwsKmsIdentifier` will succeed
+with the fact that this string starts with `arn:`
+to know that `ParseAwsKmsArn` MUST succeed.
+We can then wrap this `arn` so that we can compare the two calls
+as the specification requires.
+
+## Step 25
+
+Looking at our specification,
+our next two requirements are very similar.
+They differ in how the string should start
+and if `MultiRegionAwsKmsIdentifier?` should return true or false
+
+```dafny
+
+    //= compliance/framework/aws-kms/aws-kms-key-arn.txt#2.9
+    //= type=implication
+    //# If the input starts with "alias/", this an AWS KMS alias and
+    //# not a multi-Region key id and MUST return false.
+    ensures "alias/" <= s
+      ==>
+        var resource := ParseAwsKmsIdentifier(s).value;
+        !MultiRegionAwsKmsIdentifier?(ParseAwsKmsIdentifier(s).value)
+
+    //= compliance/framework/aws-kms/aws-kms-key-arn.txt#2.9
+    //= type=implication
+    //# If the input starts
+    //# with "mrk-", this is a multi-Region key id and MUST return true.
+    ensures "mrk-" <= s
+      ==>
+        var resource := ParseAwsKmsIdentifier(s).value;
+        MultiRegionAwsKmsIdentifier?(resource)
+
+```
+
+## Step 26
+
+Finally the specification says
+"If the input does not start with any of the above,
+this is not a multi-Region key id and MUST return false."
+This is just a negation of the three starts with we already have.
+
+There are a few ways to express this,
+but this one mirrors the specification to make it easier
+to see the correspondence.
+
+```dafny
+
+    //= compliance/framework/aws-kms/aws-kms-key-arn.txt#2.9
+    //= type=implication
+    //# If
+    //# the input does not start with any of the above, this is not a multi-
+    //# Region key id and MUST return false.
+    ensures
+        && !("arn:" <= s )
+        && !("alias/" <= s )
+        && !("mrk-" <= s )
+      ==>
+        var resource := ParseAwsKmsIdentifier(s);
+        !MultiRegionAwsKmsIdentifier?(resource.value)
+
+```
+
+## Step 27
+
+TODO run duvet with a CI so that we can see the exit code.
