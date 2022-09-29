@@ -1,35 +1,33 @@
 
 ## Step 1
 
-First open the `exercises/start` directory in VSCode.
-Now open the file `AwsKmsArnParsing.dfy`.
-Most of the things here should make sense,
-but lets go over them all.
+In VSCode open the directoyr `exercises/start`
+and open the file
+Open the `exercises/start` directory in VSCode.
 
-`include` is how Dafny includes other files.
+1. `include` is how Dafny includes other files.
 The file `include.dfy` is a helper file we added for you.
 It has a few things things to help you.
 
-`module`, also pretty simple.
-This is how Dafny organizes code.
+1. `module` is how Dafny organizes code.
 This `module` is called `AwsKmsArnParsing`.
 Everything in `{}` is the contents of the `module`.
 Dafny does have ways to control what gets exported,
-but for now, lets just say "everything is exported.
+but for now, lets just say everything is exported.
 
-`import` takes a named module
-and bring it into scope in an existing module.
-`opened` takes all the exported names
+1. `import` takes a named module
+and bring it into scope.
+
+1. `opened` takes all the exported names
 in the imported module and puts them in the current namespace.
-This is where we will get symbols that don't exist in this file.
-For example `Split` and `Join`.
+This is where we will get symbols that don't exist in this file,
+for example `Split` and `Join`.
 
-Ok, so what about `{:options "-functionSyntax:4"}`?
+1. `{:options "-functionSyntax:4"}`
 This is to simplify upgrading.
-When Dafny v4 comes out modules with this option
+When Dafny v4 is released out modules with this option
 will "Just Work".
-You don't need to work about this for the workshop,
-but if you are *really* interested:
+If you are *really* interested:
 see [Controlling language features
 ](https://dafny.org/dafny/DafnyRef/DafnyRef#sec-controlling-language) for more details.
 
@@ -47,14 +45,11 @@ but its nice to get some of it in your head.
 
 ## Step 3
 
-We need some parts.
-Since we are going to be parsing strings
+Since we are going to be parsing strings,
 we need some containers to put the parts of the strings in.
 
-Also, we need to say how these containers are correct.
-
-Paste into the module the following code
-and then we will go over what it means
+Paste the following code into the moodule
+and then we will go over what it means.
 
 ```dafny
 
@@ -74,12 +69,12 @@ We will add properties to them to hold our strings.
 
 To the left of the `=` is the name of the `datatype`.
 To the right of the `=` are the `datatype`'s constructors.
-In this case we only have one.
+In this case, we have only one.
 Later we will have more.
 
-What is a `predicate` and whats the deal with that`?` at the end?
-A `predicate` is just a function that returns a `boolean`.
-It is just sugar for `function AwsArn?(arn:AwsArn) : bool`.
+What is a `predicate` and what's the deal with that`?` at the end?
+A `predicate` is a function that returns a `boolean`.
+It is syntactic sugar for `function AwsArn?(arn:AwsArn) : bool`.
 
 Generally such functions ask a question.
 For example "Is this AwsArn `arn` a valid AwsArn?".
@@ -87,13 +82,12 @@ Since `?` is a perfectly good character for a name in Dafny,
 it is often added to a `predicate`.
 This also nicely binds the intention `predicate` with the `datatype`.
 
-Finally, you will notice that Dafny perfectly happy
-with not havening any details or implementation.
+Dafny is perfectly happy with constructs that have no body.
 We will use this later.
 
 ## Step 4
 
-Let's add some properties to our `datatype`'s.
+Let's add some properties to our `datatype`s.
 
 ```dafny
   datatype AwsArn = AwsArn(
@@ -114,26 +108,21 @@ Let's add some properties to our `datatype`'s.
 Much like other languages,
 every argument given to a `datatype` constructor
 is a property.
-This means is `obj` is an `AwsArn` then `obj.service` is a `string`.
+This means that if the variable `obj` is an `AwsArn`
+then `obj.service` is a `string`.
 But what about `nameonly`?
 
-Positional arguments are nice and compact.
-At the definition, what the names are is obvious.
-However, at the call site you might wonder:
-What is the 3rd parameter again?
-
 `nameonly` forces callers to use named parameters.
-This makes the call site more verbose.
-But it makes it much more readable for future you,
-or anyone new to the codebase.
+This makes the call more verbose,
+but it makes it much more readable.
 
 You are not required to use it.
 But I highly recommend it.
 
 ## Step 5
 
-Now we have some containers,
-lets talk about what values are correct for these containers to hold.
+Now we have some containers.
+Let's talk about the correct values for these containers.
 
 ```dafny
 
@@ -149,29 +138,35 @@ lets talk about what values are correct for these containers to hold.
 
 ```
 
+We are evaluating the `AwsArn` containter
+to see if it is correct.
+We can read this as:
+The arnLiteral MUST be the string "arn"
+and partition, service, region, and account
+MUST NOT be empty string
+and finally the resource MUST be a correct AwsResource.
+
 A `predicate` is a kind of function.
 Functions in Dafny are just syntactic sugar for expressions.
 You will note that there is no `;`.
 The return value for any `predicate` or `function`
 is just the vary last unterminated expression.
 
-The leading `&&` is just sugar.
-Allowing leading boolean operators like this
+The leading token, `&&`, is just sugar.
+Leading boolean operators like this
 lets you reorder things nicely.
 It may look strange at first,
 but leading tokens like this grow on you.
 
-`|arn.partition|`?
-`string`'s in Dafny are a sequence of characters.
-Surrounding a sequence with `|` will return the cardinality of a sequence.
-This is just a fancy way of saying "length".
+`string`s in Dafny are a sequence of characters.
+Surrounding a sequence with `|` will return the length (cardinality) or of a sequence.
 So `0 < arn.partition.length`
 is probably how you would expect that to be written
 in a language you are more familiar with.
 
-I will also note that we are calling `AwsResource?`
+We are calling `AwsResource?`
 even though it does not have an implementation.
-If you tried to compile this
+If you tried to compile this,
 Dafny would complain.
 But all Dafny needs for `AwsArn?` to be valid
 is to be able to prove that it will always return a `bool`.
@@ -179,16 +174,10 @@ Feel free to change `AwsResource?` to a function
 that returns something else and see :)
 `function AwsResource?(resource: AwsResource): string`
 
-So we can read this as:
-The arnLiteral MUST be the string "arn"
-and partition, service, region, and account
-MUST NOT be empty string
-and finally the resource MUST be a correct AwsResource.
-
 ## Step 6
 
-Using what we have learned
-let's give our remaining three `predicate`'s implementations.
+Using what we have learned,
+let's add implementations to our remaining three `predicate`s .
 
 ```dafny
 
@@ -220,20 +209,20 @@ So the resourceType for an `AwsKmsResource`
 MUST be either "key" or "alias".
 
 Go back and take a look at our specification.
-Does this seem to capture most of what it says makes a valid AWS KMS ARN?
+Does this seem to capture most of what the specification says makes a valid AWS KMS ARN?
 
 ## Step 7
 
-Many languages have types similar to Dafny's `datatype`
+Many languages have types similar to Dafny's `datatype`,
 albeit not always immutable.
-These kinds of types have a quality of correctness.
-After all you can't put a number into a string...
-If these kinds of types represent the basic shape of your data,
-then Dafny's Subset type is a painting
+These types have a quality of correctness.
+After all, you can't put a number into a string.
+If these types represent the basic shape of your data,
+then Dafny's subset type is a painting
 full of light, shadow, and color.
 
-A Subset type lets us combine the correctness we in
-in `predicate`s with a base `datatype`.
+A subset type lets us combine the correctness we defined
+in our `predicate`s with a base `datatype`.
 We can then reason about this new type statically.
 
 As we will see,
@@ -269,9 +258,9 @@ But it is simpler to prove
 that a given base type satisfies a subset types constraint
 when that constraint is wrapped up in a single `predicate`.
 
-What is a witness?
+What is a `witness` clause?
 In Dafny, types are generally expected to have some value.
-The witness is there to prove to Dafny
+The `witness` is there to prove to Dafny
 that a value of this subset type can indeed be created.
 You can imagine that this could be valuable
 in the case of a complicated condition.
