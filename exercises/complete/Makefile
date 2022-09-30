@@ -58,3 +58,17 @@ compile_cpp:
 	--args arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
 	asdf \
 	"alias\ryan"
+
+duvet_report:
+	duvet \
+		report \
+		--ci \
+		--spec-pattern "aws-kms-key-arn/**/*.toml" \
+  	--require-citations true \
+  	--require-tests true \
+		--no-cargo \
+		--html compliance_report.html \
+		--source-pattern src/*.dfy
+
+duvet_extract:
+	duvet extract aws-kms-key-arn.txt 

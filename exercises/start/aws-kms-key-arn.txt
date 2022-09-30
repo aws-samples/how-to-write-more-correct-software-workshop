@@ -91,7 +91,7 @@ Table of Contents
 
    5.  The account MUST be a non-empty string
 
-   6.  The resource section MUST be non-empty and MUST be split by a
+   6.  The resource section MUST be non-empty. It MUST be split by a
        single "/" any additional "/" are included in the resource id
 
        1.  The resource type MUST be either "alias" or "key"
