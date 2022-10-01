@@ -514,7 +514,7 @@ and if it does not have a value it will halt and return the error.
 In the case of `Need`,
 instead of a `Result` it returns an `Outcome`.
 This is just a fancy way of saying:
-"This will never return a value".
+"This does not need to return a value".
 Since there is never a value,
 there is no need to have a `var`
 to hold a temporary variable.
