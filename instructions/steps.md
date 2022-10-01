@@ -7,7 +7,6 @@ Open the `exercises/start` directory in VSCode.
 
 1. `include` is how Dafny includes other files.
 The file `include.dfy` is a helper file we added for you.
-It has a few things things to help you.
 
 1. `module` is how Dafny organizes code.
 This `module` is called `AwsKmsArnParsing`.
@@ -116,8 +115,9 @@ But what about `nameonly`?
 This makes the call more verbose,
 but it makes it much more readable.
 
-You are not required to use it.
-But I highly recommend it.
+You are not required to use it
+in your code,
+but I highly recommend it.
 
 ## Step 5
 
@@ -140,7 +140,7 @@ Let's talk about the correct values for these containers.
 
 We are evaluating the `AwsArn` containter
 to see if it is correct.
-We can read this as:
+We can read this `predicate` as:
 The arnLiteral MUST be the string "arn"
 and partition, service, region, and account
 MUST NOT be empty string
@@ -217,13 +217,13 @@ Many languages have types similar to Dafny's `datatype`,
 albeit not always immutable.
 These types have a quality of correctness.
 After all, you can't put a number into a string.
-If these types represent the basic shape of your data,
-then Dafny's subset type is a painting
-full of light, shadow, and color.
 
 A subset type lets us combine the correctness we defined
 in our `predicate`s with a base `datatype`.
 We can then reason about this new type statically.
+If most types represent the basic shape of your data,
+then Dafny's subset type is a painting
+full of light, shadow, and color.
 
 As we will see,
 to return a subset type we will need to prove
@@ -269,7 +269,8 @@ that we prove any given value is correct,
 in our case we don't need this.
 
 From this you can understand that `witness *`
-tells Dafny, "Don't worry, I take responsibility for creating values.
+tells Dafny, "Don't worry, it doesn't matter
+whether a value of this type actually exists."
 
 Dafny also has features
 where you can ask for a value of a given type.
@@ -304,7 +305,18 @@ Again, we just start with the signatures.
 
 ```
 
-`function` is what you would expect.
+`function` is mostly what you expect.
+However, `function`s in Dafny are more restrictive
+than you are probably used to.
+They are syntactic sugar for expressions.
+They are more like mathematical functions,
+they are 1000% deterministic.
+The can't mutate, or use loops, or create objects on the heap.
+These restrictions are important
+because `function` are the building blocks for proof.
+
+For our purposes today they provide a good introduction.
+We won't run into these restrictions for what we want to do today.
 I hope that the arguments are equally clear :)
 
 `: (result: AwsKmsResource)`?
@@ -358,6 +370,11 @@ We know nothing about `identifier` that has been given to us.
 
 How can we ask Dafny about such things?
 `assert` is how Dafny will tell you what it believes to be true.
+Most languages have a way for you to do "console log debugging"
+where you make changes, run the code, and check the output.
+`assert` is a way to do something similar.
+However, instead of checking specific value
+Dafny will check them all for you.
 
 Generally `Split` functions will return a single element
 if the character does not appear in the string.
@@ -371,6 +388,8 @@ and sure enough Dafny will believe us.
 But any larger number, say `assert 2 <= |components|;`
 Dafny will disagree.
 
+<details><summary>Aside</summary>
+<p>
 Note: Some clever among you may try
 `assert Split("a:b", ':') == ["a", "b"];`.
 Dafny will not unwind every possible fact.
@@ -380,8 +399,8 @@ it is saying "I can't prove that *is* true".
 
 In fact we can convince Dafny by adding
 `assert Split("a:b", ':')[0] == "a";`.
-
-
+</p>
+</details>
 
 ## Step 10
 
@@ -400,12 +419,12 @@ First we need a type that can express
 the difference between `Success` and `Failure`.
 In the `Wrappers` the `Result` type does exactly this.
 It takes 2 type parameters.
-One for the `Success` and the other for `Failure`
+One for the `Success` and the other for `Failure`[^monad]
 
-If this sounds to you like a monad,
-then congratulations it is pretty close.
-If you have no idea what a monad is,
-then congratulations you are one of the lucky 10,000!
+[^monad]: If this sounds to you like a monad,
+    then congratulations it is pretty close.
+    If you have no idea what a monad is,
+    then congratulations you are one of the lucky 10,000!
 
 Update our function like so:
 ```dafny
@@ -432,7 +451,7 @@ Update our function like so:
 ```
 
 `Success` is a constructor of the `datatype` `Result`.
-Dafny knows that there is only 1 constructor
+Dafny knows that the constructor is unambiguous.
 so you don't have to fully qualify it `Result.Success(arn)`.
 
 Looking at our specification
@@ -468,6 +487,9 @@ We could write
 
 ```
 
+This is great!
+Dafny now believes us that `components[5]` will _always_ be valid.
+You can even ask Dafny `assert |components| < 7;` and it will object.
 But pretty quickly we are going to introduce a pyramid of doom
 as we continually indent for more and more each such condition.
 
@@ -700,7 +722,12 @@ Let's go with "It starts with arn:".
 
 Since Dafny treats `string` as a sequence characters
 `<=` means "start with".
-Hopefully this is somewhat intuitive.
+This is probably a little surprising.
+But the only way for 2 sequences to be equal
+is if they are the same length
+and every element is the same in the same order.
+This bounds the "greater than" to adding any number of elements.
+
 We also have `:-` with value returning types.
 Feel free to replace that with assignment (`:=`)
 and see what happens.
@@ -713,8 +740,7 @@ like this `AwsKmsIdentifier.AwsKmsArnIdentifier(a)`
 
 Again, notice that Dafny is OK with us calling our stub.
 This is a powerful tool.
-We don't add any pre or post conditions in this workshop.
-But if we did Dafny will uses these requirements
+Dafny will uses these requirements
 and then when an implementation is added make sure they are honored.
 
 ## Step 16
@@ -943,7 +969,8 @@ But here we want to tie this back to the original string.
 
 The specification says that each part
 is delimited by a `:`.
-Remember that a `lemma` is never executed.
+Remember that a `lemma` is never executed
+and therefore don't worry about how slow something will "execute".
 So the following: `0 < |Split(identifier, ':')[1]|`
 will work nicely.
 
