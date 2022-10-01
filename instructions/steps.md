@@ -312,7 +312,7 @@ The first `:` tells Dafny "This is the return value".
 By putting it in `()` we can give our return value a name.
 e.g. `result` and a type for this return value.
 This lets us reference it in a postcondition or `ensures` clause.
-These are things that MUST be true when the function ends.
+These are things that MUST be true about the result of the function.
 We could have `: AwsKmsResource`.
 But for reasons beyond the scope of this workshop
 the other is often preferred.
