@@ -680,7 +680,7 @@ Since in JS you can pass most anything you like...
 Let's do `ParseAwsKmsIdentifier` first.
 How can we distinguish an ARN
 from a resource?
-Let's go with "It starts with anr:".
+Let's go with "It starts with arn:".
 
 
 ```dafny
