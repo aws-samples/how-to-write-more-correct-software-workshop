@@ -369,7 +369,7 @@ Dafny will indeed tell us that this is true!
 This means we can `assert 1 <= |components|;`
 and sure enough Dafny will believe us.
 But any larger number, say `assert 2 <= |components|;`
-Dafny will agree.
+Dafny will disagree.
 
 Note: Some clever among you may try
 `assert Split("a:b", ':') == ["a", "b"];`.
