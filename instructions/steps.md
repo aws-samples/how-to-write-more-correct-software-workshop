@@ -351,7 +351,7 @@ Now we see 2 problems.
 `value does not satisfy the subset constraints of 'AwsKmsArn'`
 
 Dafny does not believe us that `6 == |components|`.
-That is that there are at least 5 `:` in `identifier`.
+That is, that there are at least 5 `:` in `identifier`.
 
 This makes sense to us.
 We know nothing about `identifier` that has been given to us.
