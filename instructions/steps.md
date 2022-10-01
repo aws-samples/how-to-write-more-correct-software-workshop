@@ -657,7 +657,7 @@ As promised we have a `datatype` with multiple constructors.
 You can see that we reference the type here `: (result: Result<AwsKmsIdentifier, string>)`.
 In that function we will need to create
 either a `AwsKmsArnIdentifier(a)` or a `AwsKmsRawResourceIdentifier(r)`.
-This is how you define a "Discriminant Union" in Dafny.
+This is how you define a "Discriminated Union" in Dafny.
 That's just a fancy way of saying "An A or a B" :)
 
 What about the `//=` and `//#`?
