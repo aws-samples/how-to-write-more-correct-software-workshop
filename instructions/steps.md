@@ -385,7 +385,7 @@ In fact we can convince Dafny by adding
 
 ## Step 10
 
-Ok, so what do we do it there are not enough `:` in `identifier`?
+Ok, so what do we do if there are not enough `:` in `identifier`?
 Dafny does not have a ability to `throw`.
 The return type in Dafny is a contract or postcondition.
 That means that we MUST return an `AwsKmsArn`.
