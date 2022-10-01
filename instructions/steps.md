@@ -990,7 +990,7 @@ The rest are just non-empty elements for each subsequent element.
     
     //= compliance/framework/aws-kms/aws-kms-key-arn.txt#2.5
     //= type=implication
-    //# The resource section MUST be non-empty
+    //# The resource section MUST be non-empty.
     ensures ParseAwsKmsArn(identifier).Success? ==> 0 < |Split(identifier, ':')[5]|
 
 ```
@@ -1011,8 +1011,8 @@ that there are links to our code.
 ## Step 21
 
 What is interesting here is that
-our last requirement `The resource section MUST be non-empty`
-has a second clause.
+our last requirement `The resource section MUST be non-empty.`
+has a second part.
 We could have verified all this together,
 but it is better to break the requirements up.
 This lowers the cognitive load.
@@ -1021,9 +1021,9 @@ and ask ourselves "Does this code satisfy this requirement?"
 
 ```dafny
 
-    //= compliance/framework/aws-kms/aws-kms-key-arn.txt#2.5
+    //= aws-kms-key-arn.txt#2.5
     //= type=implication
-    //# and MUST be split by a
+    //# It MUST be split by a
     //# single "/" any additional "/" are included in the resource id
     ensures ParseAwsKmsArn(identifier).Success? ==>
       var resource := ParseAwsKmsArn(identifier).value.resource;
