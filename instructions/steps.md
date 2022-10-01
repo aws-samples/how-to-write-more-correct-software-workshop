@@ -1216,7 +1216,7 @@ Instead of dealing with every possible string,
 we want to deal with every string that could be a `AwsKmsIdentifier`.
 
 This is called a precondition.
-Something that MUST be true *before* the function executes.
+Something that MUST be true *before* the function is evaluated.
 Dafny expresses this with the keyword `requires`
 
 ```dafny
