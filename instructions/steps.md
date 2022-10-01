@@ -261,7 +261,7 @@ when that constraint is wrapped up in a single `predicate`.
 What is a `witness` clause?
 In Dafny, types are generally expected to have some value.
 The `witness` is there to prove to Dafny
-that a value of this subset type can indeed be created.
+that a value of this subset type can indeed exists.
 You can imagine that this could be valuable
 in the case of a complicated condition.
 But since in any event Dafny will REQUIRE
