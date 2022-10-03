@@ -1,9 +1,21 @@
 
 ## Step 1
 
-In VSCode open the directoyr `exercises/start`
-and open the file
-Open the `exercises/start` directory in VSCode.
+In VSCode open the directory `exercises/start`
+and open the file `exercises/start/src/AwsKmsArnParsing.dfy`
+
+You should see
+
+```dafny
+
+include "../../dafny-helpers/include.dfy"
+
+module {:options "-functionSyntax:4"} AwsKmsArnParsing {
+
+}
+
+
+```
 
 1. `include` is how Dafny includes other files.
 The file `include.dfy` is a helper file we added for you.
@@ -32,22 +44,47 @@ see [Controlling language features
 
 ## Step 2
 
-### TODO change this to run duvet here and then open that spec
-
 Since we are dealing with correct software,
 we need a definition of correctness!
-So open the specification `aws-kms-key-arn.txt`.
+We have given you a specification `aws-kms-key-arn.txt`.
+This has been lightly edited from [AWS Encryption SDK](https://github.com/awslabs/aws-encryption-sdk-specification/blob/master/framework/aws-kms/aws-kms-key-arn.md).
 
-Go ahead and and look through the doc.
-We will take you through the sections as we do the workshop,
-but its nice to get some of it in your head.
+Currently `duvet` is optimized to handle RFC style (ITEF) files.
+We have converted the markdown specification into this format for you.
+Soon, `duvet` will support markdown more directly.
+
+`duvet` can read text documents
+and extract MUST/SHOULD ([RFC-2119](https://datatracker.ietf.org/doc/html/rfc2119) normative language) as requirements.
+`duvet` will now keep track of this list for us.
+It will ensure not only that we account every requirement,
+but that we also provide some evidence that implemented requirements are correct. You will see how this work in more detail later.
+
+In VSCode open a terminal and `cd exercises/start`.
+Now let's extract the requirements and run a report.
+We have made nice `make` targets for you.
+
+```bash
+
+make duvet_extract
+make duvet_report
+
+```
+
+This fails because we have not even started.
+Open the `compliance_report.html` in a browser.
+You will see that we have a total of 20 requirements
+for our `aws-kms-key-arn` specification.
+
+Click on the specification and you can see details on these requirements.
+We will start on section `2.5` so go ahead
+and click on a 2.5 and take a second to read the specification.
 
 ## Step 3
 
 Since we are going to be parsing strings,
 we need some containers to put the parts of the strings in.
 
-Paste the following code into the moodule
+Paste the following code into the module
 and then we will go over what it means.
 
 ```dafny
@@ -138,7 +175,7 @@ Let's talk about the correct values for these containers.
 
 ```
 
-We are evaluating the `AwsArn` containter
+We are evaluating the `AwsArn` container
 to see if it is correct.
 We can read this `predicate` as:
 The arnLiteral MUST be the string "arn"
@@ -296,7 +333,7 @@ let's create a subset type for `AwsKmsResource`
 Ok! Let's get started.
 Again, we just start with the signatures.
 
-```dafny 
+```dafny
 
   function ParseAwsKmsRawResources(identifier: string)
     : (result: AwsKmsResource)
@@ -561,7 +598,7 @@ of `AwsKmsArn` into a single predicate
 this is all we `Need`:
 `:- Need(AwsKmsResource?(resource), "Malformed resource: " + identifier);`
 
-```dafny 
+```dafny
 
   function ParseAwsKmsArn(identifier: string)
     : (result: Result<AwsKmsArn, string>)
@@ -590,16 +627,228 @@ this is all we `Need`:
 
 ## Step 13
 
-Now we can add an implementation to `ParseAwsKmsResources`.
-Looking at the specification,
-the resource will always have a `/`.
-So we have 2 failure cases.
-With everything we have learned so far
+Now we have an implementation let's review it for correctness.
+Our first requirement is
+'A string with 5 ":" that MUST delimit following 6 parts:'.
 
 ```dafny
 
-  function ParseAwsKmsResources(identifier: string)
+  function ParseAwsKmsArn(identifier: string)
+    : (result: Result<AwsKmsArn, string>)
+
+    ensures result.Success? ==> |Split(identifier, ':')| == 6
+
+```
+
+1. `ensures` is how Dafny expresses a postcondition.
+This means that when the `ParseAwsKmsArn` is "done"
+all `ensures` clauses MUST be true.
+If Dafny can not prove them it will complain.
+`ensures` clause are never actually executed
+so the computational overhead
+of many calls to `Split` will not exist in the compiled code.
+
+1. `.Success?`
+Remember that `ParseAwsKmsArn` returns a `Result`.
+A `Result` can be constructed as either
+`Result.Success` or `Result.Failure`.
+For all `datatype`s Dafny adds a special `predicate`
+that lets you check what constructor of the `datatype`
+was used.
+
+1. `==>` is the implication operator.
+It is like an `if` without an `else`.
+If the condition to the left of `==>` is true,
+then the condition to the right of `==>` MUST be true.
+
+Putting all this together,
+we can read this as
+"`ParseAwsKmsArn` succeeding implies
+that the called string was split into 6 parts"
+
+Now, go to the `duvet` report (compliance_report.html)
+and click on this requirement.
+You should get a popup.
+Click on the `IMPLICATION` tab
+and then paste right above the `ensures` clause!
+
+You should see an annotation
+in the code that looks like this
+
+```dafny
+
+  //= aws-kms-key-arn.txt#2.5
+  //= type=implication
+  //# A string with 5 ":" that MUST delimit following 6 parts:
+
+```
+
+1. `//=` and `//#`
+This is duvet!
+This is how we take our implementation
+and annotate so that we know we captured every requirement.
+
+1. `//= type=implication`
+`duvet` wants us to annotate the implementation
+*and* provide some evidence that the implementation is correct.
+Dafny has strong static typing.
+This means that it is self evident
+that this function takes one argument at that this argument is correct.
+If you used `duvet` in say JavaScript,
+you would want a test ensure this kind of thing.
+Since in JS you can pass most anything you like...
+
+Run `make duvet_report` and our report will have updated.
+This requirement is now green!
+
+## Step 14
+
+Looking at our specification
+we can fill in several of our requirements.
+All of this syntax we have already gone over.
+
+``dafny
+
+  function ParseAwsKmsArn(identifier: string)
+    : (result: Result<AwsKmsArn, string>)
+
+    //= aws-kms-key-arn.txt#2.5
+    //= type=implication
+    //# A string with 5 ":" that MUST delimit following 6 parts:
+    ensures result.Success? ==> |Split(identifier, ':')| == 6
+
+    //= aws-kms-key-arn.txt#2.5
+    //= type=implication
+    //# MUST start with string "arn"
+    ensures result.Success? ==> "arn" <= identifier
+
+    //= aws-kms-key-arn.txt#2.5
+    //= type=implication
+    //# The partition MUST be a non-empty
+    ensures result.Success? ==> 0 < |Split(identifier, ':')[1]|
+
+    //= aws-kms-key-arn.txt#2.5
+    //= type=implication
+    //# The service MUST be the string "kms"
+    ensures result.Success? ==> Split(identifier, ':')[2] == "kms"
+
+    //= aws-kms-key-arn.txt#2.5
+    //= type=implication
+    //# The region MUST be a non-empty string
+    ensures result.Success? ==> 0 < |Split(identifier, ':')[3]|
+
+    //= aws-kms-key-arn.txt#2.5
+    //= type=implication
+    //# The account MUST be a non-empty string
+    ensures result.Success? ==> 0 < |Split(identifier, ':')[4]|
+
+    //= aws-kms-key-arn.txt#2.5
+    //= type=implication
+    //# The resource section MUST be non-empty.
+    ensures result.Success? ==> 0 < |Split(identifier, ':')[5]|
+
+```
+
+But wait!
+Dafny is complaining:
+The postcondition
+`ensures result.Success? ==> 0 < |Split(identifier, ':')[5]|`
+may not hold.
+
+Hum, obviously we need to update `ParseAwsKmsResources`
+to return a `Result`.
+
+```dafny
+
+  function ParseAwsKmsResources(arnResource: string)
     : (result: Result<AwsKmsResource, string>)
+
+```
+
+Whoops, now we also have to update our call.
+Since we return a `Result` now.
+
+```dafny
+
+    var resource :- ParseAwsKmsResources(components[5]);
+
+```
+
+Let's think about this.
+`ParseAwsKmsResources` does not have any `ensures` on it.
+So Dafny is unable to make any connection
+between the `AwsKmsResource` and the input `string`.
+So let's fix that.
+
+```dafny
+
+  function ParseAwsKmsResources(arnResource: string)
+    : (result: Result<AwsKmsResource, string>)
+
+    //= aws-kms-key-arn.txt#2.5
+    //= type=implication
+    //# It MUST be split by a
+    //# single "/" any additional "/" are included in the resource id
+    ensures result.Success?
+    ==>
+      && '/' in arnResource
+      && arnResource == result.value.resourceType + "/" + result.value.value
+
+    //= aws-kms-key-arn.txt#2.5
+    //= type=implication
+    //# The resource type MUST be either "alias" or "key"
+    //# The resource id MUST be a non-empty string
+    ensures result.Success?
+    ==>
+      ("key/" < arnResource || "alias/" < arnResource)
+
+```
+
+Success!!
+Let's go over some cool things about this moment.
+
+First, we have added constraints to a method *before* implementing it.
+We talked before about how Dafny
+was ok without having a body.
+Now we show that Dafny will honor
+requirements on these stubs.
+Since Dafny will also force us
+to `ensure` these requirements in our implementation
+this kind of specification driven development
+is a powerful tool in our toolbox.
+
+Second, we have added two requirements
+to a single single `duvet` annotation.
+This works because these requirements are contiguous.
+
+Finally, take a look at the "non-empty" requirement
+and see if you can work out why this is indeed enforced.
+
+## Step 15
+
+Now we can add an implementation to `ParseAwsKmsResources`.
+
+```dafny
+
+  function ParseAwsKmsResources(arnResource: string)
+    : (result: Result<AwsKmsResource, string>)
+
+    //= aws-kms-key-arn.txt#2.5
+    //= type=implication
+    //# It MUST be split by a
+    //# single "/" any additional "/" are included in the resource id
+    ensures result.Success?
+    ==>
+      && '/' in arnResource
+      && arnResource == result.value.resourceType + "/" + result.value.value
+
+    //= aws-kms-key-arn.txt#2.5
+    //= type=implication
+    //# The resource type MUST be either "alias" or "key"
+    //# The resource id MUST be a non-empty string
+    ensures result.Success?
+    ==>
+      ("key/" < arnResource || "alias/" < arnResource)
   {
     var info := Split(identifier, '/');
 
@@ -620,27 +869,18 @@ With everything we have learned so far
 
 ```
 
-What is `info[1..]`?
+1. `info[1..]`
 This is a slice notation.
 This will return a new sequence.
 It will include the second element.
 If you want more details see [here](https://dafny.org/dafny/DafnyRef/DafnyRef#sec-other-sequence-expressions)
 
-But wait!
-Now there is an error back in `ParseAwsKmsArn`.
-Remember we used to always return a `AwsKmsResource`.
-Now we can fail.
-We need to update the assignment `:=`
-with the elephant `:-` to remember to fail if needed :)
 
-`var resource := ParseAwsKmsResources(components[5]);`
-goes to
-`var resource :- ParseAwsKmsResources(components[5]);`
-
-## Step 14
+## Step 16
 
 Again looking at our specification
 we need to handle an AWS KMS identifier.
+This is covered in sections 2.8 and 2.9.
 This adds some complexity.
 Since a raw key id is not a complete resource section.
 
@@ -682,22 +922,7 @@ either a `AwsKmsArnIdentifier(a)` or a `AwsKmsRawResourceIdentifier(r)`.
 This is how you define a "Discriminated Union" in Dafny.
 That's just a fancy way of saying "An A or a B" :)
 
-What about the `//=` and `//#`?
-This is duvet!
-This is how we take our implementation
-and annotate so that we know we captured every requirement.
-
-And `//= type=implication`?
-Well duvet wants us to annotate the implementation
-*and* provide some evidence that the implementation is correct.
-Dafny has strong static typing.
-This means that it is self evident
-that this function takes one argument at that this argument is correct.
-If you used duvet in say JavaScript,
-you would want a test ensure this kind of thing.
-Since in JS you can pass most anything you like...
-
-## Step 15
+## Step 17
 
 Let's do `ParseAwsKmsIdentifier` first.
 How can we distinguish an ARN
@@ -743,7 +968,7 @@ This is a powerful tool.
 Dafny will uses these requirements
 and then when an implementation is added make sure they are honored.
 
-## Step 16
+## Step 18
 
 Lets do `ParseAwsKmsRawResources`.
 First we will do a quick naive implementation.
@@ -803,12 +1028,74 @@ Let's just add the condition to our exising `Need`:
 
 ```
 
-## Step 17
 
+## Step 19
 We are almost done with our implementation!!
-Let's get done so we can prove something!
 
-First `MultiRegionAwsKmsIdentifier?`
+First `MultiRegionAwsKmsArn?`
+
+```dafny
+
+  //= aws-kms-key-arn.txt#2.8
+  //= type=implication
+  //# This function MUST take a single AWS KMS ARN
+  //# If the input is an invalid AWS KMS ARN this function MUST error.
+  predicate MultiRegionAwsKmsArn?(arn: AwsKmsArn)
+
+    //= aws-kms-key-arn.txt#2.8
+    //= type=implication
+    //# If resource type is "alias", this is an AWS KMS alias ARN and MUST
+    //# return false.
+    ensures arn.resource.resourceType == "alias" ==> !MultiRegionAwsKmsArn?(arn)
+
+    //= aws-kms-key-arn.txt#2.8
+    //= type=implication
+    //# If resource type is "key" and resource ID starts with
+    //# "mrk-", this is a AWS KMS multi-Region key ARN and MUST return true.
+    ensures
+      && arn.resource.resourceType == "key"
+      && "mrk-" <= arn.resource.value
+    ==>
+      MultiRegionAwsKmsArn?(arn)
+
+    //= aws-kms-key-arn.txt#2.8
+    //= type=implication
+    //# If resource type is "key" and resource ID does not start with "mrk-",
+    //# this is a (single-region) AWS KMS key ARN and MUST return false.
+    ensures
+      && arn.resource.resourceType == "key"
+      && !("mrk-" <= arn.resource.value)
+    ==>
+      !MultiRegionAwsKmsArn?(arn)
+  {
+    MultiRegionAwsKmsResource?(arn.resource)
+  }
+
+```
+
+The most interesting thing here
+is that we are doing what looks like a recursive call
+in our `ensures` clause.
+This is not actually recursive.
+This is because we did not give our `predicate` a named result.
+This is just telling Dafny what to expect about the result.
+
+Now `MultiRegionAwsKmsResource?`.
+
+This is always a `key` that starts with `mrk-`.
+Given everything we have learned we have learned:
+
+```dafny
+
+  predicate MultiRegionAwsKmsResource?(resource: AwsKmsResource)
+  {
+    && resource.resourceType == "key"
+    && "mrk-" <= resource.value
+  }
+
+```
+
+Finally `MultiRegionAwsKmsIdentifier?`!!
 
 ```dafny
 
@@ -832,47 +1119,25 @@ This looks at they possible constructors of `AwsKmsIdentifier`
 and creates a branch for each one.
 If say `AwsKmsArnIdentifier` had more arguments,
 then we would be required to list them all.
-These aruments the bind variables that are in scope
+These arguments the bind variables that are in scope
 in that `case` branch.
 
-Looking at the specification,
-an MRK is dependent only on the resource section.
-From this we can see that `MultiRegionAwsKmsArn?`
-just delegates.
+## Step 20
 
-```dafny
+Wait!
+Run `make duvet_report`.
+We are missing some proof.
+Section 2.9.
 
-  //= aws-kms-key-arn.txt#2.8
-  //= type=implication
-  //# This function MUST take a single AWS KMS ARN
-  //# If the input is an invalid AWS KMS ARN this function MUST error.
-  predicate MultiRegionAwsKmsArn?(arn: AwsKmsArn)
-  {
-    MultiRegionAwsKmsResource?(arn.resource)
-  }
+Well, the function takes an `AwsKmsIdentifier`,
+but it is specified from the `string`.
+This would be a little complicated
+to handle directly in `MultiRegionAwsKmsIdentifier?`.
 
-```
-
-Finally `MultiRegionAwsKmsResource?`!!
-This is always a `key` that starts with `mrk-`.
-Pretty simple with everything else we have learned.
-
-```dafny
-
-  predicate MultiRegionAwsKmsResource?(resource: AwsKmsResource)
-  {
-    && resource.resourceType == "key"
-    && "mrk-" <= resource.value
-  }
-
-```
-
-## Step 18
-
-One way to prove things in Dafny
-is with a `lemma`.
+Dafny has another tool,
+a `lemma`.
 This is like a running _every_ test all at once.
-In logic a lemma is like a little proof.
+In logic a lemma is a little proof.
 Something that is used on the way to prove
 what you really care about.
 
@@ -880,27 +1145,21 @@ This is how it is used in Dafny.
 We want correct programs,
 but sometimes we need to prove parts.
 
-All the proof that we are going to do in this workshop
-could be done directly on the `function`s.
-Here we have the proof extrinsic (external)
-to the `function`s.
-This lets us ground some ideas as tests.
-This makes for a nice mental model to start
-and hopefully encourage you to prove things
-about your own code.
 
-We will start by proving that `ParseAwsKmsArn` is correct.
+We will start by proving that `MultiRegionAwsKmsIdentifier?` is correct.
 Start here:
 
 ```dafny
 
-  lemma ParseAwsKmsArnCorrect(identifier: string)
-  {}
+  lemma MultiRegionAwsKmsIdentifier?Correct(identifier: string)
 
 ```
 
-We name the `lemma` to relate it to `ParseAwsKmsArn`.
-It takes a `string`.
+We name the `lemma` to relate it to `MultiRegionAwsKmsIdentifier?`.
+It takes a `string` because our requirements
+are described as strings.
+Incidentally this is because when you configure AWS KMS keys
+they are strings.
 Because we have not placed _any_ conditions on this `string`
 it represents _any_ string.
 This means every length,
@@ -909,340 +1168,13 @@ and every combination of characters.
 So anything that this `lemma` will ensure
 is like a test on every possible `string` all at once!
 
-Look at the specification.
-We will start with our first requirement
-`MUST start with string "arn"`.
-To be valid the string needs to start with `arn`.
-We can express this as `"arn" <= identifier`.
-
-Having a string simply start with `arn`
-can not imply anything.
-Since the string `"arn"` starts with `arn`!
-However if `identifier` is successfully parsed,
-then it MUST have started with `arn` right?
-
-```dafny
-
-  lemma ParseAwsKmsArnCorrect(identifier: string)
-    //= aws-kms-key-arn.txt#2.5
-    //= type=implication
-    //# MUST start with string "arn"
-    ensures ParseAwsKmsArn(identifier).Success? ==> "arn" <= identifier
-  {}
-
-```
-
-`.Success?`?
-Remember that `ParseAwsKmsArn` returns a `Result`.
-A `Result` can be constructed as either
-`Result.Success` or `Result.Failure`.
-For all `datatype`s Dafny adds a special `predicate`
-that lets you check what constructor of the `datatype`
-was used.
-
-`ensures` is how Dafny expresses a postcondition.
-This means that when the `lemma` is "done"
-(remember lemmas are never actually executed)
-all `ensures` clauses MUST be true.
-If Dafny can not prove them
-it will complain.
-
-Try changing the string to something else.
-Dafny will tell you "This postcondition might not hold on a return path."
-
-It is important to note that Dafny does not say "This postcondition WILL not hold."
-Dafny is very persnickety.
-It will **always** start from the null hypothesis.
-So while we know this is indeed false,
-Dafny just says "I don't believe you".
-
-Try negating your condition: `!("brn" <= identifier)`.
-Dafny will now agree with you,
-that this is true.
-
-## Step 19
-
-`The partition MUST be a non-empty` is our next requirement.
-We dealt with non-empty before,
-the cardinality is more than 0.
-But here we want to tie this back to the original string.
-
-The specification says that each part
-is delimited by a `:`.
-Remember that a `lemma` is never executed
-and therefore don't worry about how slow something will "execute".
-So the following: `0 < |Split(identifier, ':')[1]|`
-will work nicely.
-
-However, we know that this will only be true,
-for valid `identifier`s.
-We can just use the `==>` (implication) operator.
-
-```dafny
-
-    //= aws-kms-key-arn.txt#2.5
-    //= type=implication
-    //# The partition MUST be a non-empty
-    ensures ParseAwsKmsArn(identifier).Success? ==> 0 < |Split(identifier, ':')[1]|
-
-```
-
-In this same step,
-lets look at the next few requirements.
-`The service MUST be the string "kms"` is equality,
-so that's just changing `<` to `==`.
-The rest are just non-empty elements for each subsequent element.
-
-```dafny
-
-    //= aws-kms-key-arn.txt#2.5
-    //= type=implication
-    //# The partition MUST be a non-empty
-    ensures ParseAwsKmsArn(identifier).Success? ==> 0 < |Split(identifier, ':')[1]|
-
-    //= aws-kms-key-arn.txt#2.5
-    //= type=implication
-    //# The service MUST be the string "kms"
-    ensures ParseAwsKmsArn(identifier).Success? ==> Split(identifier, ':')[2] == "kms"
-
-    //= aws-kms-key-arn.txt#2.5
-    //= type=implication
-    //# The region MUST be a non-empty string
-    ensures ParseAwsKmsArn(identifier).Success? ==> 0 < |Split(identifier, ':')[3]|
-
-    //= aws-kms-key-arn.txt#2.5
-    //= type=implication
-    //# The account MUST be a non-empty string
-    ensures ParseAwsKmsArn(identifier).Success? ==> 0 < |Split(identifier, ':')[4]|
-    
-    //= aws-kms-key-arn.txt#2.5
-    //= type=implication
-    //# The resource section MUST be non-empty.
-    ensures ParseAwsKmsArn(identifier).Success? ==> 0 < |Split(identifier, ':')[5]|
-
-```
-
-## Step 20
-
-Let's pause here for a moment and run `duvet` again.
-
-```
-make duvet
-```
-
-When we refresh out report we can now see
-that there are links to our code.
-
-// TODO more words here
-
-## Step 21
-
-What is interesting here is that
-our last requirement `The resource section MUST be non-empty.`
-has a second part.
-We could have verified all this together,
-but it is better to break the requirements up.
-This lowers the cognitive load.
-All we need to do is look at the clause
-and ask ourselves "Does this code satisfy this requirement?"
-
-```dafny
-
-    //= aws-kms-key-arn.txt#2.5
-    //= type=implication
-    //# It MUST be split by a
-    //# single "/" any additional "/" are included in the resource id
-    ensures ParseAwsKmsArn(identifier).Success? ==>
-      var resource := ParseAwsKmsArn(identifier).value.resource;
-      && ParseAwsKmsResources(Split(identifier, ':')[5]).Success?
-      && resource == ParseAwsKmsResources(Split(identifier, ':')[5]).value
-      && Split(identifier, ':')[5] == resource.resourceType + "/" + resource.value
-
-```
-
-Having a `var` inside of this expression may be a little surprising.
-But Dafny understand that this is just a temporary variable in this expression.
-Since Dafny expressions pure and immutable
-as long as there is no intervening statement
-there is no real difference between one expression
-and any number of contiguous expressions.
-
-In fact Dafny will also let you write the above like this
-```dafny
-
-    ensures ParseAwsKmsArn(identifier).Success? ==>
-      && var resource := ParseAwsKmsArn(identifier).value.resource;
-      && ParseAwsKmsResources(Split(identifier, ':')[5]).Success?
-      && resource == ParseAwsKmsResources(Split(identifier, ':')[5]).value
-      && Split(identifier, ':')[5] == resource.resourceType + "/" + resource.value
-
-```
-
-At this point,
-everything else should be familiar to us except `.value`?
-If you look at the definition of `Result` (in Wrappers.dfy)
-it looks something like this
-
-```dafny
-datatype Result<+T, +R> =
-  | Success(value: T)
-  | Failure(error: R)
-```
-
-So the value in the `Success` constructor
-is the "happy path" value.
-If you want more information about type paramaters
-you can look at [this](https://dafny.org/dafny/DafnyRef/DafnyRef#sec-type-characteristics).
-[The `+` says that T and R MUST be co-variant](https://dafny.org/dafny/DafnyRef/DafnyRef#sec-type-parameter-variance).
-Variance is beyond the scope of this course :)
-
-## Step 22
-
-With the above we have tied the result back to the string,
-From our specification we need to place constraints
-on both the `resourceType` and the resource id.
-
-This is pretty straightforward but let's
-do it with a little trick just for fun.
-
-```dafny
-
-    //= aws-kms-key-arn.txt#2.5
-    //= type=implication
-    //# The resource type MUST be either "alias" or "key"
-    ensures ParseAwsKmsArn(identifier).Success? ==>
-      var AwsResource(resourceType, _) := ParseAwsKmsArn(identifier).value.resource;
-      "key" == resourceType || "alias" == resourceType
-
-    //= aws-kms-key-arn.txt#2.5
-    //= type=implication
-    //# The resource id MUST be a non-empty string
-    ensures ParseAwsKmsArn(identifier).Success? ==>
-      var AwsResource(_, id) := ParseAwsKmsArn(identifier).value.resource;
-      0 < |id|
-
-```
-
-I hope this is _mostly_ what you would expect.
-But let's look at `var AwsResource(resourceType, _) := ParseAwsKmsArn(identifier).value.resource;`.
-
-If you remember the `resource` property of an `AwsArn` is an `AwsResource`.
-Dafny lets us use that constructor
-and pluck off the properties.
-The `_` just tells Dafny, "Don't worry, I don't care about that one".
-
-From this we can see that
-`var AwsResource(_, id) := ParseAwsKmsArn(identifier).value.resource;`
-is just inverting the value plucked.
-
-I want to take a moment
-and make clear what we have proved.
-We have been investigating not a few strings.
-Or even some strange strings.
-But every possible string.
-Even strings that would not fit
-into your computers memory because they are too big.
-
-We have verified that `ParseAwsKmsArn` will always honor these requirements
-regardless of what string we give it.
-Further, we have clearly tied each
-of our documented requirements to our source.
-
-## Step 23
-
-Now we can do `MultiRegionAwsKmsArn?`.
-Again we start out with a `lemma`
-
-```dafny
-
-  lemma MultiRegionAwsKmsArn?Correct(arn: AwsKmsArn)
-  {}
-
-```
-
-You can see that it takes an `AwsKmsArn` this time.
-There is nothing new in our ensures clauses
-that we have not already gone over,
-so lets just add them all in and take a look
-
-```dafny
-
-  lemma MultiRegionAwsKmsArn?Correct(arn: AwsKmsArn)
-    //= aws-kms-key-arn.txt#2.8
-    //= type=implication
-    //# If resource type is "alias", this is an AWS KMS alias ARN and MUST
-    //# return false.
-    ensures arn.resource.resourceType == "alias" ==> !MultiRegionAwsKmsArn?(arn)
-    //= aws-kms-key-arn.txt#2.8
-    //= type=implication
-    //# If resource type is "key" and resource ID starts with
-    //# "mrk-", this is a AWS KMS multi-Region key ARN and MUST return true.
-    ensures
-      && arn.resource.resourceType == "key"
-      && "mrk-" <= arn.resource.value
-    ==>
-      MultiRegionAwsKmsArn?(arn)
-    //= aws-kms-key-arn.txt#2.8
-    //= type=implication
-    //# If resource type is "key" and resource ID does not start with "mrk-",
-    //# this is a (single-region) AWS KMS key ARN and MUST return false.
-    ensures
-      && arn.resource.resourceType == "key"
-      && !("mrk-" <= arn.resource.value)
-    ==>
-      !MultiRegionAwsKmsArn?(arn)
-  {}
-
-```
-
-Given everything these are reasonably simple
-expressions of the specifications in Dafny.
-
-I will note that `&&` binds stronger than `==>`.
-In fact, in Dafny the length of the express its strength.
-This means that if you try to compose multiple `==>` together
-it is best to use parentheses.
-Since each `ensures` is only a single statement
-I've left them out.
-
-Let's run `duvet` again
-
-```
-make duvet
-```
-
-After we refresh the report,
-we can now see more coverage in our report.
-For complicated project with lots of requirements
-This process helps everyone.
-From this we can see that we are almost done.
-
-## Step 24
-
-The home stretch.
-All we have left is `MultiRegionAwsKmsIdentifier?`.
-
-We start as before with a `lemma`
-
-```dafny
-
-  lemma MultiRegionAwsKmsIdentifier?Correct(s: string)
-  {}
-
-```
-
-We have started with a `string` because our requirements
-are described as strings.
-Incidentally this is because when you configure AWS KMS keys
-they are strings.
-
 However our `predicate` takes an `AwsKmsIdentifier`.
 This means that not _every_ string is valid input.
 We want to shape our input.
 Instead of dealing with every possible string,
 we want to deal with every string that could be a `AwsKmsIdentifier`.
 
-This is called a precondition.
+For this we need a precondition.
 Something that MUST be true *before* the function is evaluated.
 Dafny expresses this with the keyword `requires`
 
@@ -1250,7 +1182,6 @@ Dafny expresses this with the keyword `requires`
 
   lemma MultiRegionAwsKmsIdentifier?Correct(s: string)
     requires ParseAwsKmsIdentifier(s).Success?
-  {}
 
 ```
 
@@ -1283,8 +1214,6 @@ to know that `ParseAwsKmsArn` MUST succeed.
 We can then wrap this `arn` so that we can compare the two calls
 as the specification requires.
 
-## Step 25
-
 Looking at our specification,
 our next two requirements are very similar.
 They differ in how the string should start
@@ -1312,8 +1241,6 @@ and if `MultiRegionAwsKmsIdentifier?` should return true or false
 
 ```
 
-## Step 26
-
 Finally the specification says
 "If the input does not start with any of the above,
 this is not a multi-Region key id and MUST return false."
@@ -1337,6 +1264,58 @@ to see the correspondence.
       ==>
         var resource := ParseAwsKmsIdentifier(s);
         !MultiRegionAwsKmsIdentifier?(resource.value)
+
+```
+
+Putting that all together we get.
+
+```dafny
+
+  lemma MultiRegionAwsKmsIdentifier?Correct(s: string)
+    requires ParseAwsKmsIdentifier(s).Success?
+
+    //= aws-kms-key-arn.txt#2.9
+    //= type=implication
+    //# If the input starts with "arn:", this MUST return the output of
+    //# identifying an an AWS KMS multi-Region ARN (aws-kms-key-
+    //# arn.md#identifying-an-an-aws-kms-multi-region-arn) called with this
+    //# input.
+    ensures "arn:" <= s
+      ==>
+        var arnIdentifier := ParseAwsKmsIdentifier(s).value;
+        MultiRegionAwsKmsIdentifier?(arnIdentifier) == MultiRegionAwsKmsArn?(arnIdentifier.a)
+
+    //= aws-kms-key-arn.txt#2.9
+    //= type=implication
+    //# If the input starts with "alias/", this an AWS KMS alias and
+    //# not a multi-Region key id and MUST return false.
+    ensures "alias/" <= s
+      ==>
+        var resource := ParseAwsKmsIdentifier(s).value;
+        !MultiRegionAwsKmsIdentifier?(ParseAwsKmsIdentifier(s).value)
+
+    //= aws-kms-key-arn.txt#2.9
+    //= type=implication
+    //# If the input starts
+    //# with "mrk-", this is a multi-Region key id and MUST return true.
+    ensures "mrk-" <= s
+      ==>
+        var resource := ParseAwsKmsIdentifier(s).value;
+        MultiRegionAwsKmsIdentifier?(resource)
+
+    //= aws-kms-key-arn.txt#2.9
+    //= type=implication
+    //# If
+    //# the input does not start with any of the above, this is not a multi-
+    //# Region key id and MUST return false.
+    ensures
+        && !("arn:" <= s )
+        && !("alias/" <= s )
+        && !("mrk-" <= s )
+      ==>
+        var resource := ParseAwsKmsIdentifier(s);
+        !MultiRegionAwsKmsIdentifier?(resource.value)
+  {}
 
 ```
 
