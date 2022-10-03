@@ -1,4 +1,7 @@
 
+verify:
+	dafny -compile:0 -trace src/*.dfy
+
 compile: | compile_cs compile_go compile_java
 
 compile_fail: | compile_js compile_py compile_cpp
