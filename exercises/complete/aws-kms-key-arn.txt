@@ -79,7 +79,7 @@ Table of Contents
 
 2.5.  A valid AWS KMS ARN
 
-   A string with 5 ":" that delimit following 6 parts:
+   A string with 5 ":" that MUST delimit following 6 parts:
 
    1.  MUST start with string "arn"
 
