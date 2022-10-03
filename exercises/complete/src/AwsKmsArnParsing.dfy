@@ -5,6 +5,9 @@ include "../../dafny-helpers/include.dfy"
 
 module {:options "-functionSyntax:4"} AwsKmsArnParsing {
 
+  import opened Wrappers
+  import opened Util
+
   datatype AwsArn = AwsArn(
     nameonly arnLiteral: string,
     nameonly partition: string,
@@ -58,9 +61,6 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
   | AwsKmsResource?(resource)
   witness *
 
-  import opened Wrappers
-  import opened Util
-
   function ParseAwsKmsArn(identifier: string)
     : (result: Result<AwsKmsArn, string>)
 
@@ -93,7 +93,7 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
     //= type=implication
     //# The account MUST be a non-empty string
     ensures result.Success? ==> 0 < |Split(identifier, ':')[4]|
-    
+
     //= aws-kms-key-arn.txt#2.5
     //= type=implication
     //# The resource section MUST be non-empty.
@@ -156,7 +156,6 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
 
     Success(resource)
   }
-
 
   function ParseAwsKmsRawResources(identifier: string)
     : (result: Result<AwsKmsResource, string>)
@@ -242,8 +241,8 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
     && "mrk-" <= resource.value
   }
 
-  lemma MultiRegionAwsKmsIdentifier?Correct(s: string)
-    requires ParseAwsKmsIdentifier(s).Success?
+  lemma MultiRegionAwsKmsIdentifier?Correct(identifier: string)
+    requires ParseAwsKmsIdentifier(identifier).Success?
 
     //= aws-kms-key-arn.txt#2.9
     //= type=implication
@@ -251,27 +250,27 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
     //# identifying an an AWS KMS multi-Region ARN (aws-kms-key-
     //# arn.md#identifying-an-an-aws-kms-multi-region-arn) called with this
     //# input.
-    ensures "arn:" <= s
+    ensures "arn:" <= identifier
       ==>
-        var arnIdentifier := ParseAwsKmsIdentifier(s).value;
+        var arnIdentifier := ParseAwsKmsIdentifier(identifier).value;
         MultiRegionAwsKmsIdentifier?(arnIdentifier) == MultiRegionAwsKmsArn?(arnIdentifier.a)
 
     //= aws-kms-key-arn.txt#2.9
     //= type=implication
     //# If the input starts with "alias/", this an AWS KMS alias and
     //# not a multi-Region key id and MUST return false.
-    ensures "alias/" <= s
+    ensures "alias/" <= identifier
       ==>
-        var resource := ParseAwsKmsIdentifier(s).value;
-        !MultiRegionAwsKmsIdentifier?(ParseAwsKmsIdentifier(s).value)
+        var resource := ParseAwsKmsIdentifier(identifier).value;
+        !MultiRegionAwsKmsIdentifier?(ParseAwsKmsIdentifier(identifier).value)
 
     //= aws-kms-key-arn.txt#2.9
     //= type=implication
     //# If the input starts
     //# with "mrk-", this is a multi-Region key id and MUST return true.
-    ensures "mrk-" <= s
+    ensures "mrk-" <= identifier
       ==>
-        var resource := ParseAwsKmsIdentifier(s).value;
+        var resource := ParseAwsKmsIdentifier(identifier).value;
         MultiRegionAwsKmsIdentifier?(resource)
 
     //= aws-kms-key-arn.txt#2.9
@@ -280,78 +279,12 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
     //# the input does not start with any of the above, this is not a multi-
     //# Region key id and MUST return false.
     ensures
-        && !("arn:" <= s )
-        && !("alias/" <= s )
-        && !("mrk-" <= s )
+        && !("arn:" <= identifier )
+        && !("alias/" <= identifier )
+        && !("mrk-" <= identifier )
       ==>
-        var resource := ParseAwsKmsIdentifier(s);
+        var resource := ParseAwsKmsIdentifier(identifier);
         !MultiRegionAwsKmsIdentifier?(resource.value)
   {}
-
-
-
-
-
-
-
-
-
-  lemma ParseAwsKmsIdentifierIsComplete(s: string)
-    requires ParseAwsKmsIdentifier(s).Success?
-    ensures s == AwsKmsIdentifierToString(ParseAwsKmsIdentifier(s).value)
-  {
-    if
-      && ParseAwsKmsIdentifier(s).value.AwsKmsRawResourceIdentifier?
-      && s != AwsKmsIdentifierToString(ParseAwsKmsIdentifier(s).value) {
-
-    }
-
-    if
-      && ParseAwsKmsIdentifier(s).value.AwsKmsArnIdentifier?
-      && s != AwsKmsIdentifierToString(ParseAwsKmsIdentifier(s).value)
-    {
-      var arn := ParseAwsKmsIdentifier(s).value.a;
-      assert [
-          arn.arnLiteral,
-          arn.partition,
-          arn.service,
-          arn.region,
-          arn.account,
-          Split(s, ':')[5]
-        ] == Split(s, ':');
-    }
-  }
-
-  function AwsKmsIdentifierToString(identifier: AwsKmsIdentifier)
-    : (output: string)
-  {
-    match identifier
-      case AwsKmsArnIdentifier(arn) => AwsKmsArnToString(arn)
-      case AwsKmsRawResourceIdentifier(resource) => AwsKmsRawResourceToString(resource)
-  }
-
-  function AwsKmsArnToString(arn: AwsKmsArn)
-    : (output: string)
-  {
-    Join([
-        arn.arnLiteral,
-        arn.partition,
-        arn.service,
-        arn.region,
-        arn.account,
-        arn.resource.resourceType + "/" + arn.resource.value
-      ],
-      ":"
-    )
-  }
-
-  function AwsKmsRawResourceToString(resource: AwsKmsResource)
-    : (output: string)
-  {
-    if resource.resourceType == "alias" then
-      resource.resourceType + "/" + resource.value
-    else
-      resource.value
-  }
 
 }

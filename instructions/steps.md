@@ -1,3 +1,14 @@
+<!-- !test program
+tmpdir=$(mktemp -d)
+tmpProgram="$tmpdir/program.dfy"
+cat > $tmpProgram
+
+sort $tmpProgram | uniq > $tmpdir/sort
+sort ./exercises/complete/src/AwsKmsArnParsing.dfy | uniq > $tmpdir/check
+diff=$(comm -23 $tmpdir/sort $tmpdir/check)
+[ -z "$diff" ] || (echo $diff && exit 1)
+-->
+
 
 ## Step 1
 
@@ -6,11 +17,18 @@ and open the file `exercises/start/src/AwsKmsArnParsing.dfy`
 
 You should see
 
+<!-- !test check prelude -->
 ```dafny
+
+// Copyright Amazon.com Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
 
 include "../../dafny-helpers/include.dfy"
 
 module {:options "-functionSyntax:4"} AwsKmsArnParsing {
+
+  import opened Wrappers
+  import opened Util
 
 }
 
@@ -125,6 +143,7 @@ We will use this later.
 
 Let's add some properties to our `datatype`s.
 
+<!-- !test check container datatypes -->
 ```dafny
   datatype AwsArn = AwsArn(
     nameonly arnLiteral: string,
@@ -161,6 +180,7 @@ but I highly recommend it.
 Now we have some containers.
 Let's talk about the correct values for these containers.
 
+<!-- !test check AwsArn? -->
 ```dafny
 
   predicate AwsArn?(arn:AwsArn)
@@ -216,6 +236,7 @@ that returns something else and see :)
 Using what we have learned,
 let's add implementations to our remaining three `predicate`s .
 
+<!-- !test check remaining correctness predicates -->
 ```dafny
 
   predicate AwsResource?(resource:AwsResource)
@@ -269,6 +290,7 @@ But after that this correctness in baked into the type.
 
 Let's create one!
 
+<!-- !test check AwsKmsArn -->
 ```dafny
 
   type AwsKmsArn = arn: AwsArn
@@ -320,6 +342,7 @@ for more details.
 In the meantime,
 let's create a subset type for `AwsKmsResource`
 
+<!-- !test check AwsKmsResource -->
 ```dafny
 
   type AwsKmsResource = resource: AwsResource
@@ -618,7 +641,7 @@ this is all we `Need`:
       resource := resource
     );
 
-    :- Need(AwsKmsArn?(arn), "Malformed resource: " + identifier);
+    :- Need(AwsKmsArn?(arn), "Malformed Arn:" + identifier);
 
     Success(arn)
   }
@@ -631,6 +654,7 @@ Now we have an implementation let's review it for correctness.
 Our first requirement is
 'A string with 5 ":" that MUST delimit following 6 parts:'.
 
+<!-- !test check ParseAwsKmsArn Correctness -->
 ```dafny
 
   function ParseAwsKmsArn(identifier: string)
@@ -675,11 +699,12 @@ and then paste right above the `ensures` clause!
 You should see an annotation
 in the code that looks like this
 
+<!-- !test check duvet requirement -->
 ```dafny
 
-  //= aws-kms-key-arn.txt#2.5
-  //= type=implication
-  //# A string with 5 ":" that MUST delimit following 6 parts:
+    //= aws-kms-key-arn.txt#2.5
+    //= type=implication
+    //# A string with 5 ":" that MUST delimit following 6 parts:
 
 ```
 
@@ -707,7 +732,8 @@ Looking at our specification
 we can fill in several of our requirements.
 All of this syntax we have already gone over.
 
-``dafny
+<!-- !test check ParseAwsKmsArn all requirement -->
+```dafny
 
   function ParseAwsKmsArn(identifier: string)
     : (result: Result<AwsKmsArn, string>)
@@ -758,6 +784,7 @@ may not hold.
 Hum, obviously we need to update `ParseAwsKmsResources`
 to return a `Result`.
 
+<!-- !test check ParseAwsKmsResources stub -->
 ```dafny
 
   function ParseAwsKmsResources(arnResource: string)
@@ -780,6 +807,7 @@ So Dafny is unable to make any connection
 between the `AwsKmsResource` and the input `string`.
 So let's fix that.
 
+<!-- !test check ParseAwsKmsResources all requirements -->
 ```dafny
 
   function ParseAwsKmsResources(arnResource: string)
@@ -828,6 +856,7 @@ and see if you can work out why this is indeed enforced.
 
 Now we can add an implementation to `ParseAwsKmsResources`.
 
+<!-- !test check ParseAwsKmsResources full -->
 ```dafny
 
   function ParseAwsKmsResources(arnResource: string)
@@ -849,10 +878,10 @@ Now we can add an implementation to `ParseAwsKmsResources`.
     ensures result.Success?
     ==>
       ("key/" < arnResource || "alias/" < arnResource)
-  {
-    var info := Split(identifier, '/');
+   {
+    var info := Split(arnResource, '/');
 
-    :- Need(1 < |info|, "Malformed resource: " + identifier);
+    :- Need(1 < |info|, "Malformed resource: " + arnResource);
 
     var resourceType := info[0];
     var value := Join(info[1..], "/");
@@ -862,7 +891,7 @@ Now we can add an implementation to `ParseAwsKmsResources`.
       value := value
     );
 
-    :- Need(AwsKmsResource?(resource), "Malformed resource: " + identifier);
+    :- Need(AwsKmsResource?(resource), "Malformed resource: " + arnResource);
 
     Success(resource)
   }
@@ -886,6 +915,7 @@ Since a raw key id is not a complete resource section.
 
 So let's throw up the last of our implementation as stubs
 
+<!-- !test check Identifier stubs -->
 ```dafny
 
   datatype AwsKmsIdentifier =
@@ -930,6 +960,7 @@ from a resource?
 Let's go with "It starts with arn:".
 
 
+<!-- !test check ParseAwsKmsIdentifier -->
 ```dafny
 
   function ParseAwsKmsIdentifier(identifier: string)
@@ -1009,6 +1040,7 @@ Now we could use `ParseAwsKmsResources`
 but that has a bunch of redundant string operations.
 Let's just add the condition to our exising `Need`:
 
+<!-- !test check ParseAwsKmsRawResources complete -->
 ```dafny
 
   function ParseAwsKmsRawResources(identifier: string)
@@ -1028,12 +1060,12 @@ Let's just add the condition to our exising `Need`:
 
 ```
 
-
 ## Step 19
 We are almost done with our implementation!!
 
 First `MultiRegionAwsKmsArn?`
 
+<!-- !test check MultiRegionAwsKmsArn? -->
 ```dafny
 
   //= aws-kms-key-arn.txt#2.8
@@ -1085,6 +1117,7 @@ Now `MultiRegionAwsKmsResource?`.
 This is always a `key` that starts with `mrk-`.
 Given everything we have learned we have learned:
 
+<!-- !test check MultiRegionAwsKmsResource? -->
 ```dafny
 
   predicate MultiRegionAwsKmsResource?(resource: AwsKmsResource)
@@ -1097,6 +1130,7 @@ Given everything we have learned we have learned:
 
 Finally `MultiRegionAwsKmsIdentifier?`!!
 
+<!-- !test check MultiRegionAwsKmsIdentifier? -->
 ```dafny
 
   //= aws-kms-key-arn.txt#2.9
@@ -1149,6 +1183,7 @@ but sometimes we need to prove parts.
 We will start by proving that `MultiRegionAwsKmsIdentifier?` is correct.
 Start here:
 
+<!-- !test check MultiRegionAwsKmsIdentifier?Correct signature -->
 ```dafny
 
   lemma MultiRegionAwsKmsIdentifier?Correct(identifier: string)
@@ -1178,10 +1213,11 @@ For this we need a precondition.
 Something that MUST be true *before* the function is evaluated.
 Dafny expresses this with the keyword `requires`
 
+<!-- !test check MultiRegionAwsKmsIdentifier?Correct with requires -->
 ```dafny
 
-  lemma MultiRegionAwsKmsIdentifier?Correct(s: string)
-    requires ParseAwsKmsIdentifier(s).Success?
+  lemma MultiRegionAwsKmsIdentifier?Correct(identifier: string)
+    requires ParseAwsKmsIdentifier(identifier).Success?
 
 ```
 
@@ -1189,10 +1225,11 @@ Now everywhere we can assume that the string `s`
 is a valid `AwsKmsIdentifier`!
 This simplifies our first requirement
 
+<!-- !test check MultiRegionAwsKmsIdentifier?Correct first ensures -->
 ```dafny
 
-  lemma MultiRegionAwsKmsIdentifier?Correct(s: string)
-    requires ParseAwsKmsIdentifier(s).Success?
+  lemma MultiRegionAwsKmsIdentifier?Correct(identifier: string)
+    requires ParseAwsKmsIdentifier(identifier).Success?
 
     //= aws-kms-key-arn.txt#2.9
     //= type=implication
@@ -1200,9 +1237,9 @@ This simplifies our first requirement
     //# identifying an an AWS KMS multi-Region ARN (aws-kms-key-
     //# arn.md#identifying-an-an-aws-kms-multi-region-arn) called with this
     //# input.
-    ensures "arn:" <= s
+    ensures "arn:" <= identifier
       ==>
-        var arnIdentifier := ParseAwsKmsIdentifier(s).value;
+        var arnIdentifier := ParseAwsKmsIdentifier(identifier).value;
         MultiRegionAwsKmsIdentifier?(arnIdentifier) == MultiRegionAwsKmsArn?(arnIdentifier.a)
   {}
 
@@ -1219,24 +1256,25 @@ our next two requirements are very similar.
 They differ in how the string should start
 and if `MultiRegionAwsKmsIdentifier?` should return true or false
 
+<!-- !test check MultiRegionAwsKmsIdentifier?Correct other requirements -->
 ```dafny
 
     //= aws-kms-key-arn.txt#2.9
     //= type=implication
     //# If the input starts with "alias/", this an AWS KMS alias and
     //# not a multi-Region key id and MUST return false.
-    ensures "alias/" <= s
+    ensures "alias/" <= identifier
       ==>
-        var resource := ParseAwsKmsIdentifier(s).value;
-        !MultiRegionAwsKmsIdentifier?(ParseAwsKmsIdentifier(s).value)
+        var resource := ParseAwsKmsIdentifier(identifier).value;
+        !MultiRegionAwsKmsIdentifier?(ParseAwsKmsIdentifier(identifier).value)
 
     //= aws-kms-key-arn.txt#2.9
     //= type=implication
     //# If the input starts
     //# with "mrk-", this is a multi-Region key id and MUST return true.
-    ensures "mrk-" <= s
+    ensures "mrk-" <= identifier
       ==>
-        var resource := ParseAwsKmsIdentifier(s).value;
+        var resource := ParseAwsKmsIdentifier(identifier).value;
         MultiRegionAwsKmsIdentifier?(resource)
 
 ```
@@ -1250,6 +1288,7 @@ There are a few ways to express this,
 but this one mirrors the specification to make it easier
 to see the correspondence.
 
+<!-- !test check MultiRegionAwsKmsIdentifier?Correct final ensures -->
 ```dafny
 
     //= aws-kms-key-arn.txt#2.9
@@ -1258,21 +1297,22 @@ to see the correspondence.
     //# the input does not start with any of the above, this is not a multi-
     //# Region key id and MUST return false.
     ensures
-        && !("arn:" <= s )
-        && !("alias/" <= s )
-        && !("mrk-" <= s )
+        && !("arn:" <= identifier )
+        && !("alias/" <= identifier )
+        && !("mrk-" <= identifier )
       ==>
-        var resource := ParseAwsKmsIdentifier(s);
+        var resource := ParseAwsKmsIdentifier(identifier);
         !MultiRegionAwsKmsIdentifier?(resource.value)
 
 ```
 
 Putting that all together we get.
 
+<!-- !test check MultiRegionAwsKmsIdentifier?Correct complete -->
 ```dafny
 
-  lemma MultiRegionAwsKmsIdentifier?Correct(s: string)
-    requires ParseAwsKmsIdentifier(s).Success?
+  lemma MultiRegionAwsKmsIdentifier?Correct(identifier: string)
+    requires ParseAwsKmsIdentifier(identifier).Success?
 
     //= aws-kms-key-arn.txt#2.9
     //= type=implication
@@ -1280,27 +1320,27 @@ Putting that all together we get.
     //# identifying an an AWS KMS multi-Region ARN (aws-kms-key-
     //# arn.md#identifying-an-an-aws-kms-multi-region-arn) called with this
     //# input.
-    ensures "arn:" <= s
+    ensures "arn:" <= identifier
       ==>
-        var arnIdentifier := ParseAwsKmsIdentifier(s).value;
+        var arnIdentifier := ParseAwsKmsIdentifier(identifier).value;
         MultiRegionAwsKmsIdentifier?(arnIdentifier) == MultiRegionAwsKmsArn?(arnIdentifier.a)
 
     //= aws-kms-key-arn.txt#2.9
     //= type=implication
     //# If the input starts with "alias/", this an AWS KMS alias and
     //# not a multi-Region key id and MUST return false.
-    ensures "alias/" <= s
+    ensures "alias/" <= identifier
       ==>
-        var resource := ParseAwsKmsIdentifier(s).value;
-        !MultiRegionAwsKmsIdentifier?(ParseAwsKmsIdentifier(s).value)
+        var resource := ParseAwsKmsIdentifier(identifier).value;
+        !MultiRegionAwsKmsIdentifier?(ParseAwsKmsIdentifier(identifier).value)
 
     //= aws-kms-key-arn.txt#2.9
     //= type=implication
     //# If the input starts
     //# with "mrk-", this is a multi-Region key id and MUST return true.
-    ensures "mrk-" <= s
+    ensures "mrk-" <= identifier
       ==>
-        var resource := ParseAwsKmsIdentifier(s).value;
+        var resource := ParseAwsKmsIdentifier(identifier).value;
         MultiRegionAwsKmsIdentifier?(resource)
 
     //= aws-kms-key-arn.txt#2.9
@@ -1309,11 +1349,11 @@ Putting that all together we get.
     //# the input does not start with any of the above, this is not a multi-
     //# Region key id and MUST return false.
     ensures
-        && !("arn:" <= s )
-        && !("alias/" <= s )
-        && !("mrk-" <= s )
+        && !("arn:" <= identifier )
+        && !("alias/" <= identifier )
+        && !("mrk-" <= identifier )
       ==>
-        var resource := ParseAwsKmsIdentifier(s);
+        var resource := ParseAwsKmsIdentifier(identifier);
         !MultiRegionAwsKmsIdentifier?(resource.value)
   {}
 
