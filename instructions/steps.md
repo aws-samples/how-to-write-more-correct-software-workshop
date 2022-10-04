@@ -483,7 +483,7 @@ it is saying "I can't prove that *is* true".
 In fact we can convince Dafny by adding
 ```dafny
     assert Split("a:b", ':')[0] == "a";
-``
+```
 before the above `assert`.
 </p>
 </details>
