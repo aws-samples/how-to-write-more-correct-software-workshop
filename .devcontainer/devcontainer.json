@@ -60,9 +60,5 @@
 	// "forwardPorts": [],
 
 	// "oryx build" will automatically install your dependencies and attempt to build your project
-	"postCreateCommand": "oryx build -p virtualenv_name=.venv --log-file /tmp/oryx-build.log --manifest-dir /tmp || echo 'Could not auto-build. Skipping.'",
-
-	"remoteEnv": {
-		"PATH": "${containerEnv:PATH}:/home/codespace/.vscode-remote/extensions/dafny-lang.ide-vscode-2.8.2/out/resources/3.8.1/dafny" 
-	}
+	"postCreateCommand": "oryx build -p virtualenv_name=.venv --log-file /tmp/oryx-build.log --manifest-dir /tmp || echo 'Could not auto-build. Skipping.'"
 }
