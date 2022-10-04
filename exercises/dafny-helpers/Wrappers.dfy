@@ -6,6 +6,8 @@
 *  SPDX-License-Identifier: MIT 
 *******************************************************************************/
 
+// Copied from https://github.com/dafny-lang/libraries/blob/master/src/Wrappers.dfy
+
 module Wrappers {
   
   datatype Option<+T> = None | Some(value: T) {

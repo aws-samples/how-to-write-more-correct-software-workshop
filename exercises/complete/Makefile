@@ -2,11 +2,11 @@
 verify:
 	dafny -compile:0 -trace src/*.dfy
 
-compile: | compile_cs compile_go compile_java
+execute: | execute_cs execute_go execute_java
 
-compile_fail: | compile_js compile_py compile_cpp
+execute_fail: | execute_js execute_py execute_cpp
 
-compile_cs:
+execute_cs:
 	dafny \
 	src/Index.dfy \
 	/compile:3 \
@@ -14,53 +14,53 @@ compile_cs:
 	--args \
 	arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
 	arn:aws-cn:kms:us-west-2:658956600833:b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
-	asdf \
-	"alias\ryan"
-compile_go:
+	1234abcd-12ab-34cd-56ef-1234567890ab \
+	"alias\ryans-key"
+execute_go:
 	dafny \
 	src/Index.dfy \
 	/compile:3 \
 	/compileTarget:go \
 	--args \
 	arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
-	asdf \
-	"alias\ryan"
-compile_js:
+	1234abcd-12ab-34cd-56ef-1234567890ab \
+	"alias\ryans-key"
+execute_js:
 	dafny \
 	src/Index.dfy \
 	/compile:3 \
 	/compileTarget:js \
 	--args \
 	arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
-	asdf \
-	"alias\ryan"
-compile_java:
+	1234abcd-12ab-34cd-56ef-1234567890ab \
+	"alias\ryans-key"
+execute_java:
 	dafny \
 	src/Index.dfy \
 	/compile:3 \
 	/compileTarget:java \
 	--args \
 	arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
-	asdf \
-	"alias\ryan"
-compile_py:
+	1234abcd-12ab-34cd-56ef-1234567890ab \
+	"alias\ryans-key"
+execute_py:
 	dafny \
 	src/Index.dfy \
 	/compile:3 \
 	/compileTarget:py \
 	--args \
 	arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
-	asdf \
-	"alias\ryan"
-compile_cpp:
+	1234abcd-12ab-34cd-56ef-1234567890ab \
+	"alias\ryans-key"
+execute_cpp:
 	dafny \
 	src/Index.dfy \
 	/compile:3 \
 	/compileTarget:cpp \
 	--args \
 	--args arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
-	asdf \
-	"alias\ryan"
+	1234abcd-12ab-34cd-56ef-1234567890ab \
+	"alias\ryans-key"
 
 duvet_report:
 	duvet \
