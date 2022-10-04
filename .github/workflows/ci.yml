@@ -1,0 +1,24 @@
+name: ci
+
+on: ["pull_request", "push"]
+
+jobs:
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Dafny
+      uses: dafny-lang/setup-dafny-action@v1
+      with:
+        dafny-version: "3.8.1"
+
+    
+    - run: make verify_complete
+    - run: make steps_are_complete
+
+    - name: Install txm for running test
+      run: npm install txm
+    - run: make txm_steps
+

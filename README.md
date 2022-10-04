@@ -1,11 +1,13 @@
-## My Project
+## How To Write More Correct Software
 
-TODO: Fill this README out!
+Welcome to the How To Write More Correct Software workshop!
+This workshop will help you learn how to use two powerful tools
+to make more of your code more correct:
 
-Be sure to:
+1. [Dafny](dafny.org), a programming language that formally verifies your implementation matches your specification
+2. [Duvet](https://github.com/awslabs/duvet), a code quality tool for measuring how well your human-readable specification is covered in code
 
-* Change the title in this README
-* Edit your repository description on GitHub
+This content is currently a work in progress - use at your own risk, mind our dust, and stay tuned!
 
 ## Security
 
