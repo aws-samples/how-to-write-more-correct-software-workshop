@@ -1,3 +1,6 @@
+[//]: # "Copyright Amazon.com Inc. or its affiliates. All Rights Reserved."
+[//]: # "SPDX-License-Identifier: CC-BY-SA-4.0"
+
 <!-- !test program
 tmpdir=$(mktemp -d)
 tmpProgram="$tmpdir/program.dfy"
@@ -8,7 +11,6 @@ sort ./exercises/complete/src/AwsKmsArnParsing.dfy | uniq > $tmpdir/check
 diff=$(comm -23 $tmpdir/sort $tmpdir/check)
 [ -z "$diff" ] || (echo $diff && exit 1)
 -->
-
 
 ## Step 1
 

@@ -1,3 +1,7 @@
+// Copyright Amazon.com Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+// Copied from https://github.com/aws/aws-encryption-sdk-dafny/blob/mainline/src/StandardLibrary/StandardLibrary.dfy
+
 include "Wrappers.dfy"
 
 module Util {
