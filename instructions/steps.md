@@ -932,7 +932,7 @@ Now we can add an implementation to `ParseAwsKmsResources`.
     ensures result.Success?
     ==>
       ("key/" < arnResource || "alias/" < arnResource)
-   {
+  {
     var info := Split(arnResource, '/');
 
     :- Need(1 < |info|, "Malformed resource: " + arnResource);
