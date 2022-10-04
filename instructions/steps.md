@@ -471,14 +471,16 @@ Dafny will disagree.
 
 <details><summary>Aside</summary>
 <p>
+
 Note: Some clever among you may try
 ```dafny
     assert Split("a:b", ':') == ["a", "b"];
 ```
+
 Dafny will not unwind every possible fact.
 This is why I say that Dafny does not believe us.
 These kinds of verification errors are not saying "This is false",
-it is saying "I can't prove that *is* true".
+they are saying "I can't prove that *is* true".
 
 In fact we can convince Dafny by adding
 ```dafny
@@ -537,7 +539,7 @@ Update our function like so:
 ```
 
 `Success` is a constructor of the `datatype` `Result`.
-Dafny knows that the constructor is unambiguous.
+Dafny knows that the constructor is unambiguous
 so you don't have to fully qualify it `Result.Success(arn)`.
 
 Looking at our specification
@@ -616,8 +618,8 @@ Instead we will use
 `:-` is the Elephant operator,
 or ["Update with Failure"](https://dafny.org/dafny/DafnyRef/DafnyRef#sec-update-failure)
 It will look at the return value
-and if the return has a value it will extract it,
-and if it does not have a value it will halt and return the error.
+and if the return is `Success` it will extract the value,
+and if the return is `Failure` it will halt and return the error.
 
 In the case of `Need`,
 instead of a `Result` it returns an `Outcome`.
@@ -644,7 +646,6 @@ Now let's deal with
 `value does not satisfy the subset constraints of 'AwsKmsArn'`.
 Since we stuffed all of the constraints
 of `AwsKmsArn` into a single predicate
-this is all we `Need`:
 `:- Need(AwsKmsResource?(resource), "Malformed resource: " + identifier);`
 
 ```dafny
@@ -687,6 +688,7 @@ Our first requirement is
     : (result: Result<AwsKmsArn, string>)
 
     ensures result.Success? ==> |Split(identifier, ':')| == 6
+  {
 
 ```
 
@@ -742,14 +744,19 @@ and annotate so that we know we captured every requirement.
 1. `//= type=implication`
 `duvet` wants us to annotate the implementation
 *and* provide some evidence that the implementation is correct.
-Dafny has strong static typing.
-This means that it is self evident
-that this function takes one argument at that this argument is correct.
-If you used `duvet` in say JavaScript,
-you would want a test ensure this kind of thing.
-Since in JS you can pass most anything you like...
+In Dafny an `ensures` clause MUST be true,
+therefore this bounds the implementation
+and provides evidence of the implementation's correctness.
+If you used `duvet` in a more traditional language,
+we would have annotated the `Need` call
+writen a test and annotated that test.
 
-Run `make duvet_report` and our report will have updated.
+Run 
+```bash
+make duvet_report
+```
+
+and our report will have updated.
 This requirement is now green!
 
 ## Step 14
@@ -801,6 +808,15 @@ All of this syntax we have already gone over.
 
 ```
 
+1. `"arn" <= identifier`
+Since Dafny treats `string` as a sequence characters
+`<=` means "start with".
+This is probably a little surprising.
+But the only way for 2 sequences to be equal
+is if they are the same length
+and every element is the same in the same order.
+This bounds the "greater than" to adding any number of elements.
+
 But wait!
 Dafny is complaining:
 The postcondition
@@ -827,6 +843,7 @@ Since we return a `Result` now.
 
 ```
 
+Dafny is still complaining.
 Let's think about this.
 `ParseAwsKmsResources` does not have any `ensures` on it.
 So Dafny is unable to make any connection
@@ -851,10 +868,15 @@ So let's fix that.
     //= aws-kms-key-arn.txt#2.5
     //= type=implication
     //# The resource type MUST be either "alias" or "key"
-    //# The resource id MUST be a non-empty string
     ensures result.Success?
     ==>
       ("key/" < arnResource || "alias/" < arnResource)
+
+    //= aws-kms-key-arn.txt#2.5
+    //= type=implication
+    //# The resource id MUST be a non-empty string
+    ensures result.Success?
+    ==> result.value.resourceType + "/" < arnResource
 
 ```
 
@@ -871,9 +893,15 @@ to `ensure` these requirements in our implementation
 this kind of specification driven development
 is a powerful tool in our toolbox.
 
-Second, we have added two requirements
-to a single single `duvet` annotation.
-This works because these requirements are contiguous.
+Second, if we run
+```bash
+make duvet_report
+```
+
+Now our report is complete.
+Once we add an implementation
+to this `function` that Dafny will accept
+we are done with this section!
 
 Finally, take a look at the "non-empty" requirement
 and see if you can work out why this is indeed enforced.
@@ -954,16 +982,16 @@ So let's throw up the last of our implementation as stubs
   function ParseAwsKmsRawResources(identifier: string)
     : (result: Result<AwsKmsResource, string>)
 
-  //= aws-kms-key-arn.txt#2.9
-  //= type=implication
-  //# This function MUST take a single AWS KMS identifier
-  predicate MultiRegionAwsKmsIdentifier?(identifier: AwsKmsIdentifier)
-
   //= aws-kms-key-arn.txt#2.8
   //= type=implication
   //# This function MUST take a single AWS KMS ARN
   //# If the input is an invalid AWS KMS ARN this function MUST error.
   predicate MultiRegionAwsKmsArn?(arn: AwsKmsArn)
+
+  //= aws-kms-key-arn.txt#2.9
+  //= type=implication
+  //# This function MUST take a single AWS KMS identifier
+  predicate MultiRegionAwsKmsIdentifier?(identifier: AwsKmsIdentifier)
 
   predicate MultiRegionAwsKmsResource?(resource: AwsKmsResource)
 
@@ -985,7 +1013,6 @@ How can we distinguish an ARN
 from a resource?
 Let's go with "It starts with arn:".
 
-
 <!-- !test check ParseAwsKmsIdentifier -->
 ```dafny
 
@@ -1001,29 +1028,6 @@ Let's go with "It starts with arn:".
   }
 
 ```
-
-Since Dafny treats `string` as a sequence characters
-`<=` means "start with".
-This is probably a little surprising.
-But the only way for 2 sequences to be equal
-is if they are the same length
-and every element is the same in the same order.
-This bounds the "greater than" to adding any number of elements.
-
-We also have `:-` with value returning types.
-Feel free to replace that with assignment (`:=`)
-and see what happens.
-Finally, you can see that we create `AwsKmsIdentifier`.
-Dafny is smart enough to know that
-`AwsKmsArnIdentifier` and `AwsKmsRawResourceIdentifier`
-are unique tokens.
-So you don't need to fully qualify them
-like this `AwsKmsIdentifier.AwsKmsArnIdentifier(a)`
-
-Again, notice that Dafny is OK with us calling our stub.
-This is a powerful tool.
-Dafny will uses these requirements
-and then when an implementation is added make sure they are honored.
 
 ## Step 18
 
@@ -1051,20 +1055,26 @@ First we will do a quick naive implementation.
 
 Hum, so Dafny does not believe us.
 Let's see,
-does it believe `assert resource.resourceType == "key";`?
+does it believe
+```dafny
+assert resource.resourceType == "key";
+```
 
 Hum, so what is the other condition then?
-`assert 0 < |resource.value|;`
+```dafny
+assert 0 < |resource.value|;
+```
 
 Yup! Oh, right, if `identifier == "key\"`
 then `0 == |resource.value|`!
-Fun fact Dafny lets you express this kind of implication
-like this `identifier == "key\" ==> 0 == |resource.value|`.
-We will use the implication operator `==>` a lot in a bit.
+Notice how the error message moved
+from the `Success` to the `assert`.
+Where the Dafny error message is
+also gives us information we can use.
 
 Now we could use `ParseAwsKmsResources`
 but that has a bunch of redundant string operations.
-Let's just add the condition to our exising `Need`:
+Let's just add the condition to our existing `Need`:
 
 <!-- !test check ParseAwsKmsRawResources complete -->
 ```dafny
@@ -1138,7 +1148,9 @@ This is not actually recursive.
 This is because we did not give our `predicate` a named result.
 This is just telling Dafny what to expect about the result.
 
-Now `MultiRegionAwsKmsResource?`.
+Again, Dafny is complaining because
+it does not know anything about `MultiRegionAwsKmsResource?`.
+Let's just add it this time.
 
 This is always a `key` that starts with `mrk-`.
 Given everything we have learned we have learned:
@@ -1153,6 +1165,12 @@ Given everything we have learned we have learned:
   }
 
 ```
+
+Notice all the Dafny errors went away.
+Dafny was able to look inside `MultiRegionAwsKmsResource?`
+and see that these conditions would be correct.
+This transparency of `function`s can be powerful.
+But Dafny can not unroll every function.
 
 Finally `MultiRegionAwsKmsIdentifier?`!!
 
@@ -1385,6 +1403,6 @@ Putting that all together we get.
 
 ```
 
-## Step 27
+## Step 21
 
 TODO run duvet with a CI so that we can see the exit code.

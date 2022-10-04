@@ -135,11 +135,16 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
     //= aws-kms-key-arn.txt#2.5
     //= type=implication
     //# The resource type MUST be either "alias" or "key"
-    //# The resource id MUST be a non-empty string
     ensures result.Success?
     ==>
       ("key/" < arnResource || "alias/" < arnResource)
-   {
+
+    //= aws-kms-key-arn.txt#2.5
+    //= type=implication
+    //# The resource id MUST be a non-empty string
+    ensures result.Success?
+    ==> result.value.resourceType + "/" < arnResource
+  {
     var info := Split(arnResource, '/');
 
     :- Need(1 < |info|, "Malformed resource: " + arnResource);
