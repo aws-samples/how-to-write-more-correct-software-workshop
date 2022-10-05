@@ -1,5 +1,5 @@
 .PHONY: all
-all: verify execute
+all: verify execute duvet_extract duvet_report
 
 verify:
 	dafny -compile:0 -trace src/*.dfy

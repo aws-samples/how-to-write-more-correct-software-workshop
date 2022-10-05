@@ -180,7 +180,7 @@ We will use this later.
 ## Step 4
 
 Let's add some properties to our `datatype`s.
-Replace the two exicting `datatype`s with this.
+Replace the two existing `datatype`s with this.
 
 <!-- !test check container datatypes -->
 ```dafny

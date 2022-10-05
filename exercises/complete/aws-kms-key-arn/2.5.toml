@@ -1,36 +1,42 @@
-target = "aws-kms-key-arn.txt#section-2.5"
+target = "aws-kms-key-arn.txt#2.5"
 
 # 2.5.  A valid AWS KMS ARN
 #
-# A string with 5 ":" that MUST delimit following 6 parts:
+#  An AWS KMS Key ARN is a string in the form:
 # 
-# 1.  MUST start with string "arn"
+#  arn:partition:service:region:account:resource-type/resource-id
 # 
-# 2.  The partition MUST be a non-empty
+#  A valid AWS KMS ARN is a string with 5 ":" that MUST delimit the following 6 parts:
 # 
-# 3.  The service MUST be the string "kms"
+#  1.  It MUST start with string "arn"
 # 
-# 4.  The region MUST be a non-empty string
+#  2.  The partition MUST be a non-empty
 # 
-# 5.  The account MUST be a non-empty string
+#  3.  The service MUST be the string "kms"
 # 
-# 6.  The resource section MUST be non-empty. It MUST be split by a
-#     single "/" any additional "/" are included in the resource id
+#  4.  The region MUST be a non-empty string
 # 
-#     1.  The resource type MUST be either "alias" or "key"
+#  5.  The account MUST be a non-empty string
 # 
-#     2.  The resource id MUST be a non-empty string
+#  6.  The resource section MUST be non-empty. It MUST be split by a
+#      single "/", with any any additional "/" included in the resource id
+# 
+#      1.  The resource type MUST be either "alias" or "key"
+# 
+#      2.  The resource id MUST be a non-empty string
+# 
+# 
 
 [[spec]]
 level = "MUST"
 quote = '''
-A string with 5 ":" that MUST delimit following 6 parts:
+A valid AWS KMS ARN is a string with 5 ":" that MUST delimit the following 6 parts:
 '''
 
 [[spec]]
 level = "MUST"
 quote = '''
-MUST start with string "arn"
+It MUST start with string "arn"
 '''
 
 [[spec]]
@@ -67,7 +73,7 @@ The resource section MUST be non-empty.
 level = "MUST"
 quote = '''
 It MUST be split by a
-single "/" any additional "/" are included in the resource id
+single "/", with any any additional "/" included in the resource id
 '''
 
 [[spec]]
