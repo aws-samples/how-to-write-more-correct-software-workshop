@@ -1463,4 +1463,29 @@ Putting that all together we get.
 
 ## Step 21
 
-TODO run duvet with a CI so that we can see the exit code.
+Let's run Duvet one last time:
+
+```bash
+make duvet_report
+```
+
+Success! The command no longer fails
+(if you don't believe the lack of error messages, you can check with `echo $?`).
+Congratulations on your formally-verified implementation!
+
+## Extra Credit
+
+Here are a couple of bonus questions if you are hungry for more:
+
+1. If you have strong instincts to keep your code DRY,
+   you might feel uncomfortable with all of the repeated `0 < | ... |`
+   expressions everywhere we require a non-empty string.
+   Try defining a `NonEmptyString` subset type and use it
+   in place of `string` wherever it makes sense to tighten things up.
+   Where should the relevant Duvet citations move to?
+   
+2. Now that we have implemented parsing, 
+   try implementing the other direction in a `AwsKmsIdentifierToString`
+   function and write a lemma to prove that it is always
+   the inverse of `ParseAwsKmsIdentifier`.
+   You will find one possible solution [here](../exercises/complete/src/SoundnessVsCompletness.dfy).
