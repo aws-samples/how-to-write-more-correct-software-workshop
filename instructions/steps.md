@@ -12,12 +12,20 @@ diff=$(comm -23 $tmpdir/sort $tmpdir/check)
 [ -z "$diff" ] || (echo $diff && exit 1)
 -->
 
+Welcome! 
+We're going to take you through the process of implementing a simple function
+to parse an Amazon Resource Name (ARN) string
+in the verification-aware programming language Dafny.
+We're also going to use the Duvet code quality tool
+to ensure we comply with a human-readable specification of correctness.
+
 ## Step 1
 
-In VSCode open the directory `exercises/start`
-open the file `exercises/start/src/AwsKmsArnParsing.dfy`
+The `exercises/start` directory contains our initial state,
+with a few files to get you started.
 
-You should see
+In VS Code, open the file `exercises/start/src/AwsKmsArnParsing.dfy`,
+You should see:
 
 <!-- !test check prelude -->
 ```dafny
@@ -34,8 +42,12 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
 
 }
 
-
 ```
+
+You will also see the Dafny extension automatically download Dafny for you,
+if this is the first time you've opened a Dafny source file.
+
+Let's go over a few Dafny basics:
 
 1. `include` is how Dafny includes other files.
 The file `include.dfy` is a helper file we added for you.
@@ -47,7 +59,7 @@ Dafny does have ways to control what gets exported,
 but for now, lets just say everything is exported.
 
 1. `import` takes a named module
-and bring it into scope.
+and brings it into scope.
 
 1. `opened` takes all the exported names
 in the imported module and puts them in the current namespace.
@@ -55,10 +67,10 @@ This is where we will get symbols that don't exist in this file,
 for example `Split` and `Join`.
 
 1. `{:options "-functionSyntax:4"}`
-This is to simplify upgrading.
-When Dafny v4 is released modules with this option
-will "Just Work".
-If you are *really* interested:
+allows us to use the simplest syntax for function declarations,
+which will be the default in Dafny 4 once it is released.
+You can safely ignore this,
+but if you are *really* interested:
 see [Controlling language features
 ](https://dafny.org/dafny/DafnyRef/DafnyRef#sec-controlling-language) for more details.
 
@@ -66,9 +78,9 @@ see [Controlling language features
 
 Since we are dealing with correct software,
 we need a definition of correctness!
-We have given you a specification `aws-kms-key-arn.txt`.
-This has been lightly edited from [AWS Encryption SDK](https://github.com/awslabs/aws-encryption-sdk-specification/blob/master/framework/aws-kms/aws-kms-key-arn.md)
-for this workshop.
+We have given you a specification in `aws-kms-key-arn.txt`.
+This has been lightly edited from the [AWS Encryption SDK](https://github.com/awslabs/aws-encryption-sdk-specification/blob/master/framework/aws-kms/aws-kms-key-arn.md)
+for this workshop. This is no made-up problem we're solving!
 
 Currently `duvet` is optimized to handle RFC style (ITEF) files.
 We have converted the markdown specification into this format for you.
@@ -78,14 +90,17 @@ Soon, `duvet` will support markdown directly.
 and extract MUST/SHOULD ([RFC-2119](https://datatracker.ietf.org/doc/html/rfc2119) normative language) as requirements.
 `duvet` will keep track of these requirements for us.
 It will help us account every requirement,
-and ask us to provide some evidence that implemented requirements are correct.
-You will see how this work in more detail later.
+and ask us to provide some evidence that our implementation of the requirements are correct.
+You will see how this works in more detail later.
 
-In VSCode open a terminal and 
+In VS Code [open a terminal](https://code.visualstudio.com/docs/terminal/basics) and enter:
 
 ```bash
 cd exercises/start
 ````
+
+You can also right-click the `exercises/start` folder and click "Open in Integrated Terminal".
+
 
 Now let's extract the requirements and run a report.
 We have made nice `make` targets for you.
@@ -97,14 +112,19 @@ make duvet_report
 
 ```
 
-This fails because we have not even started.
-Open the `compliance_report.html` in a browser.
-You will see that we have a total of 20 requirements
+The second command fails because we have not even started.
+There will now be a `compliance_report.html` report in the `start` folder.
+Right-click it and select "Open with Live Server",
+which should open the page in your browser
+(in a separate tab if you are using the web version of VS Code).
+If you click on the `aws-kms-key-arn` link,
+you will see that we have a total of 20 requirements
 for our `aws-kms-key-arn` specification.
 
 Click on the specification and you can see details on these requirements.
 We will start on section `2.5` so go ahead
-and click on a 2.5 and take a second to read the specification.
+and click on one of the `2.5` links in the left-most column
+and take a minute to read the specification.
 
 ## Step 3
 
@@ -113,14 +133,23 @@ we need some containers to put the parts of the strings in.
 
 Paste the following code into the `AwsKmsArnParsing` module
 and then we will go over what it means.
+Assuming you are reading these steps on GitHub,
+there should be a handy hidden copy button
+in the top-right corner of each code snippet for your convenience and delight.
+Unless we say otherwise, each time we give you a snippet like this,
+go ahead and paste it into the correct place.
+You shouldn't see any errors,
+again unless we say otherwise.
+If you run into problems please 
+[cut us an issue](https://github.com/aws-samples/how-to-write-more-correct-software-workshop/issues/new)!
 
 ```dafny
 
   datatype AwsArn = AwsArn
   datatype AwsResource = AwsResource
 
-  predicate AwsArn?(arn:AwsArn)
-  predicate AwsResource?(resource:AwsResource)
+  predicate ValidAwsArn?(arn:AwsArn)
+  predicate ValidAwsResource?(resource:AwsResource)
   predicate AwsKmsArn?(arn:AwsArn)
   predicate AwsKmsResource?(resource:AwsResource)
 
@@ -135,9 +164,9 @@ To the right of the `=` are the `datatype`'s constructors.
 In this case, we have only one.
 Later we will have more.
 
-What is a `predicate` and what's the deal with that`?` at the end?
+What is a `predicate` and what's the deal with that `?` at the end?
 A `predicate` is a function that returns a `boolean`.
-It is syntactic sugar for `function AwsArn?(arn:AwsArn) : bool`.
+It is syntactic sugar for `function ValidAwsArn?(arn:AwsArn) : bool`.
 
 Generally such functions ask a question.
 For example "Is this AwsArn `arn` a valid AwsArn?".
@@ -178,7 +207,7 @@ then `obj.service` is a `string`.
 
 `nameonly` forces callers to use named parameters.
 This makes the call more verbose,
-but it makes it much more readable.
+but also makes it much more readable.
 
 You are not required to use it
 in your code,
@@ -189,17 +218,17 @@ but I highly recommend it.
 Now we have some containers.
 Let's talk about the correct values for these containers.
 
-<!-- !test check AwsArn? -->
+<!-- !test check ValidAwsArn? -->
 ```dafny
 
-  predicate AwsArn?(arn:AwsArn)
+  predicate ValidAwsArn?(arn:AwsArn)
   {
     && arn.arnLiteral == "arn"
     && 0 < |arn.partition|
     && 0 < |arn.service|
     && 0 < |arn.region|
     && 0 < |arn.account|
-    && AwsResource?(arn.resource)
+    && ValidAwsResource?(arn.resource)
   }
 
 ```
@@ -207,16 +236,16 @@ Let's talk about the correct values for these containers.
 We are evaluating the `AwsArn` container
 to see if it is correct.
 We can read this `predicate` as:
-The arnLiteral MUST be the string "arn"
-and partition, service, region, and account
-MUST NOT be empty string
+The arnLiteral MUST be the string "arn";
+the partition, service, region, and account
+MUST NOT be empty strings;
 and finally the resource MUST be a correct AwsResource.
 
 A `predicate` is a kind of function.
 Functions in Dafny are just syntactic sugar for expressions.
 You will note that there is no `;`.
 The return value for any `predicate` or `function`
-is just the vary last unterminated expression.
+is just the value of the function's body.
 
 The leading token, `&&`, is just sugar.
 Leading boolean operators like this
@@ -230,17 +259,17 @@ So `0 < arn.partition.length`
 is probably how you would expect that to be written
 in a language you are more familiar with.
 
-We are calling `AwsResource?`
+We are calling `ValidAwsResource?`
 even though it does not have an implementation.
 If you tried to compile this,
 Dafny would complain.
-But all Dafny needs for `AwsArn?` to be valid
+But all Dafny needs for `ValidAwsArn?` to be valid
 is to be able to prove that it will always return a `bool`.
-Feel free to change `AwsResource?` to a function
+Feel free to change `ValidAwsResource?` to a function
 that returns something else and see :)
 
 ```dafny
-    function AwsResource?(resource: AwsResource): string
+    function ValidAwsResource?(resource: AwsResource): string
 ```
 
 ## Step 6
@@ -251,21 +280,21 @@ let's add implementations to our remaining three `predicate`s .
 <!-- !test check remaining correctness predicates -->
 ```dafny
 
-  predicate AwsResource?(resource:AwsResource)
+  predicate ValidAwsResource?(resource:AwsResource)
   {
     && 0 < |resource.value|
   }
 
   predicate AwsKmsArn?(arn:AwsArn)
   {
-    && AwsArn?(arn)
+    && ValidAwsArn?(arn)
     && arn.service == "kms"
     && AwsKmsResource?(arn.resource)
   }
 
   predicate AwsKmsResource?(resource:AwsResource)
   {
-    && AwsResource?(resource)
+    && ValidAwsResource?(resource)
     && (
       || resource.resourceType == "key"
       || resource.resourceType == "alias"
@@ -274,7 +303,8 @@ let's add implementations to our remaining three `predicate`s .
 
 ```
 
-Like `&&` is logical and, `||` is logical or.
+Just as `&&` is the logical "and" operator,
+`||` is the logical "or".
 So the resourceType for an `AwsKmsResource`
 MUST be either "key" or "alias".
 
@@ -285,10 +315,10 @@ Does this seem to capture most of what the specification says makes a valid AWS 
 
 Many languages have types similar to Dafny's `datatype`,
 albeit not always immutable.
-These types have a quality of correctness.
+These types already contribute some progress towards correctness.
 After all, you can't put a number into a string.
 
-A subset type lets us combine the correctness we defined
+A subset type in Dafny lets us combine the correctness we defined
 in our `predicate`s with a base `datatype`.
 We can then reason about this new type statically.
 If most types represent the basic shape of your data,
@@ -315,44 +345,36 @@ Let's create one!
 tells Dafny we want to define a type named `AwsKmsArn`.
 
 1. `arn: AwsArn` means that base type is `AwsArn`.
-To define the correctness of this `AwsArn`
-we need an instance that we can use.
+To define the constraints of this subset type,
+we need a symbol of the base type to use when defining these constraints.
 
-1. `| AwsKmsArn?(arn)` means that this instance `arn`
-MUST return `true` when passed to `AwsKmsArn?`.
-The `|` can be read as "such that".
-This type can be read
-"An `AwsKmsArn` is an `AwsArn` such that `AwsKmsArn?` is true"
+1. `| AwsKmsArn?(arn)` means that if we pass the instance `arn`
+   to `AwsKmsArn?`, it MUST return `true`.
+   The `|` can be read as "such that".
+   This type can be read
+   "An `AwsKmsArn` is an `AwsArn` `arn` such that `AwsKmsArn?(arn)` is true"
 
-Instead of a `predicate`
-Dafny will let us use any expression.
-So we could have inlined `AwsKmsArn?`.
-But it is simpler to prove
-that a given base type satisfies some constraints
-when they are wrapped up in a single `predicate`.
+   Instead of a `predicate`
+   Dafny will let us use any expression.
+   So we could have inlined `AwsKmsArn?`.
+   But it is simpler to prove
+   that a given base type satisfies some constraints
+   when they are wrapped up in a single `predicate`.
 
-1. `witness`
-In Dafny, types are generally expected to have some value.
-The `witness` is there to prove to Dafny
-that a value of this subset type can indeed exists.
-You can imagine that this could be valuable
-in the case of a complicated condition.
-But since in any event Dafny will REQUIRE
-that we prove any given value is correct,
-in our case we don't need this.
+1. `witness`:
+   In Dafny, some contexts only allow you to use a type
+   if you can prove at least one value of that type exists.
+   The `witness` clause is there to prove to Dafny
+   this is true, by providing a sample value.
+   In our case we don't need this.
 
-`witness *` tells Dafny,
-"Don't worry,
-it doesn't matter whether a value
-of this type actually exists."
+   `witness *` tells Dafny,
+   "Don't worry,
+   it doesn't matter whether a value
+   of this type actually exists."
 
-Dafny also has features
-where you can ask for a value of a given type.
-In these complicated cases
-Dafny may need help to understand how to create such a value.
-And the witness gives Dafny this information.
-Feel free to check out the [witness clauses](https://dafny.org/dafny/DafnyRef/DafnyRef#sec-witness)
-for more details.
+   Feel free to check out [witness clauses](https://dafny.org/dafny/DafnyRef/DafnyRef#sec-witness)
+   in the reference manual for more details.
 
 In the meantime,
 let's create a subset type for `AwsKmsResource`
@@ -384,20 +406,19 @@ with these naive signatures.
 However, `function`s in Dafny are more restrictive
 than you are probably used to.
 They are syntactic sugar for expressions.
-They are more like mathematical functions; 1000% deterministic.
+They are more like mathematical functions: 100% deterministic.
 The can't mutate, use loops, or create objects on the heap.
 These restrictions are important
-because `function` are the building blocks for proof.
-
+because `function`s are the building blocks for proof.
 They provide a good introduction to Dafny
 and we won't run into these restrictions today.
 
 `: (result: AwsKmsResource)`?
 The first `:` tells Dafny "This is the return value".
-By putting it in `()` we can give our return value a name.
-e.g. `result` and a type for this return value.
+By putting it in `()` we can give our return value a name
+(i.e. `result`) and a type for this return value.
 This lets us reference it in a postcondition or `ensures` clause.
-Postcondition are things that MUST be true
+Postconditions are things that MUST be true
 about the result of the function.
 We could have `: AwsKmsResource`.
 But for reasons beyond the scope of this workshop
@@ -406,8 +427,18 @@ the other is often preferred.
 ## Step 9
 
 Here is a naive first implementation.
-I'll note that it is `':'` not `":"`.
-The first is a character, the second is a string.
+Note that it is `':'` not `":"`:
+the first is a character, the second is a string.
+
+We have introduced the dreaded semicolon `;`,
+but never fear, we are still just defining a pure expression!
+This syntax is just a way of introducing names for sub-expressions.
+You can read `var x := e; y` as "let `x` be `e` within `y`".
+If you do this multiple times,
+you end up with something that looks suspiciously like
+a sequence of statements.
+Ultimately the result of the function
+is the expression following the last `;`.
 
 ```dafny
 
@@ -432,9 +463,10 @@ The first is a character, the second is a string.
 
 ```
 
-Now we see 2 problems.
-`index out of range` and
+Now we see two errors!
+`index out of range` on `components[5]`, and
 `value does not satisfy the subset constraints of 'AwsKmsArn'`
+on the final `arn`.
 
 Dafny does not believe us that `6 == |components|`.
 That is, that there are at least 5 `:` in `identifier`.
@@ -448,8 +480,10 @@ How can we ask Dafny about such things?
 Most languages have a way for you to do "console log debugging"
 where you make changes, run the code, and check the output.
 `assert` is a way to do something similar in Dafny.
-However, instead of checking specific value
-Dafny will check them all.
+However, instead of checking a specific value at runtime,
+Dafny will check them all before you ever execute your code.
+An `assert` is an error unless Dafny can deduce
+that it is impossible for the expression to be false.
 
 Generally `Split` functions will return a single element
 if the character does not appear in the string.
@@ -459,14 +493,15 @@ After the `Split` try adding
 ```dafny
     assert Split("no colon", ':') == ["no colon"];
 ```
-Dafny will indeed tell us that this is true!
+You should not see an error on this line,
+which is Dafny telling us that this is indeed true!
 
 This means we can
 ```dafny
     assert 1 <= |components|;
 ```
 and sure enough Dafny will believe us.
-But any larger number, say `assert 2 <= |components|;`
+But any larger number, say `assert 2 <= |components|;`,
 Dafny will disagree.
 
 <details><summary>Aside</summary>
@@ -493,19 +528,21 @@ before the above `assert`.
 ## Step 10
 
 Ok, so what do we do if there are not enough `:` in `identifier`?
-Dafny does not have a ability to `throw`.
+Dafny does not have a ability to `throw` an exception.
 The return type in Dafny is a contract or postcondition.
-That means that we MUST return an `AwsKmsArn`.
+That means that with the current function signature,
+we MUST return an `AwsKmsArn` no matter what.
 
 What we need is a way to express failure.
-Dafny has a way to do this,
-you can read about [failure compatible types here](https://dafny.org/dafny/DafnyRef/DafnyRef#sec-update-failure)
+Dafny has a way to do this.
+You can read about [failure compatible types here](https://dafny.org/dafny/DafnyRef/DafnyRef#sec-update-failure)
 if you like.
-But we will go over everything you need here.
+But we will go over everything you need.
 
 First we need a type that can express
 the difference between `Success` and `Failure`.
-In the `Wrappers` the `Result` type does exactly this.
+In the `Wrappers` module defined in the `include.dfy` file,
+the `Result` type does exactly this.
 It takes 2 type parameters.
 One for the `Success` and the other for `Failure`[^monad]
 
@@ -546,7 +583,7 @@ Looking at our specification
 we see "A string with 5 ":" that delimit following 6 parts:".
 This means that we need `|components| == 5`.
 
-We could write
+We could write:
 ```dafny
 
   function ParseAwsKmsArn(identifier: string)
@@ -577,7 +614,7 @@ We could write
 
 This is great!
 Dafny now believes us that `components[5]` will _always_ be valid.
-You can even ask Dafny `assert |components| < 7;` and it will object.
+You can even ask Dafny `assert |components| < 7;` and it will not object.
 But pretty quickly we are going to introduce a pyramid of doom
 as we continually indent for more and more each such condition.
 
@@ -615,11 +652,14 @@ Instead we will use
 
 ```
 
-`:-` is the Elephant operator,
-or ["Update with Failure"](https://dafny.org/dafny/DafnyRef/DafnyRef#sec-update-failure)
-It will look at the return value
-and if the return is `Success` it will extract the value,
-and if the return is `Failure` it will halt and return the error.
+`:-` is the Elephant symbol,
+used here in a ["Let or Fail" expression](https://dafny.org/dafny/DafnyRef/DafnyRef#2139-let-or-fail-expression).
+You can think of this as a drastically simplified model
+of throwing exceptions.
+It will first look at the value to the right of the `:-`:
+* If it is a `Success`, it will extract the value and evaluate the expression that follows the `;`. In this case, that means the remaining lines of the function body.
+* If it is a `Failure`, it will propagate that value as the result
+of the whole surrounding expression. In this case, that means the whole function body.
 
 In the case of `Need`,
 instead of a `Result` it returns an `Outcome`.
@@ -637,16 +677,19 @@ what you `Need` to be true to continue!
 Now, we _could_ annotate this `Need` line with duvet.
 But duvet wants both the implementation
 *and* evidence that it is correct.
-Dafny gives us an even more powerful too.
+Dafny gives us an even more powerful tool.
 Stay tuned.
 
 ## Step 12
 
-Now let's deal with
+Now let's deal with the remaining error,
 `value does not satisfy the subset constraints of 'AwsKmsArn'`.
+
+
 Since we stuffed all of the constraints
-of `AwsKmsArn` into a single predicate
+of `AwsKmsArn` into a single predicate,
 `:- Need(AwsKmsResource?(resource), "Malformed resource: " + identifier);`
+is all we need.
 
 ```dafny
 
@@ -675,9 +718,12 @@ of `AwsKmsArn` into a single predicate
 
 ```
 
+Horray! Now Dafny is at least satisfied that the implementation
+of this function matches the signature and will not crash at runtime.
+
 ## Step 13
 
-Now we have an implementation let's review it for correctness.
+Now that we have a valid implementation, let's review it for correctness.
 Our first requirement is
 'A string with 5 ":" that MUST delimit following 6 parts:'.
 
@@ -700,7 +746,7 @@ If Dafny can not prove them it will complain.
 so the computational overhead
 of many calls to `Split` will not exist in the compiled code.
 
-1. `.Success?`
+1. `.Success?`:
 Remember that `ParseAwsKmsArn` returns a `Result`.
 A `Result` can be constructed as either
 `Result.Success` or `Result.Failure`.
@@ -718,10 +764,12 @@ we can read this as
 "`ParseAwsKmsArn` succeeding implies
 that the called string was split into 6 parts"
 
-Now, go to the `duvet` report (compliance_report.html)
-and click on this requirement.
+Now, go back to the `duvet` report window (compliance_report.html)
+and click on this requirement
+(the first line with a red underline at the top of the page).
 You should get a popup.
-Click on the `IMPLICATION` tab
+Click on the `IMPLICATION` tab,
+which should briefly change to "IMPLICATION - COPIED!",
 and then paste right above the `ensures` clause!
 
 You should see an annotation
@@ -736,12 +784,12 @@ in the code that looks like this
 
 ```
 
-1. `//=` and `//#`
+1. `//=` and `//#`:
 This is duvet!
 This is how we take our implementation
 and annotate so that we know we captured every requirement.
 
-1. `//= type=implication`
+1. `//= type=implication`:
 `duvet` wants us to annotate the implementation
 *and* provide some evidence that the implementation is correct.
 In Dafny an `ensures` clause MUST be true,
@@ -749,14 +797,14 @@ therefore this bounds the implementation
 and provides evidence of the implementation's correctness.
 If you used `duvet` in a more traditional language,
 we would have annotated the `Need` call
-writen a test and annotated that test.
+with a test and annotated that test.
 
 Run 
 ```bash
 make duvet_report
 ```
 
-and our report will have updated.
+and switch back to the report window, which should automatically refresh.
 This requirement is now green!
 
 ## Step 14
