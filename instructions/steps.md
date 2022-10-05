@@ -618,7 +618,7 @@ We could write:
 
 This is great!
 Dafny now believes us that `components[5]` will _always_ be valid.
-You can even ask Dafny `assert |components| < 7;` and it will not object.
+You can even ask Dafny `assert 7 < |components|;` and it will object.
 But pretty quickly we are going to introduce a pyramid of doom
 as we continually indent for more and more each such condition.
 
