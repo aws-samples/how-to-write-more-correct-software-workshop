@@ -1,5 +1,8 @@
-# See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.245.2/containers/codespaces-linux/.devcontainer/base.Dockerfile
-FROM mcr.microsoft.com/vscode/devcontainers/universal:2-focal
+FROM gitpod/workspace-full:2022-05-08-14-31-53
+
+# Install .NET Runtime
+RUN sudo apt-get update && \
+  sudo apt-get install -y aspnetcore-runtime-6.0
 
 # Install Dafny
 RUN curl https://github.com/dafny-lang/dafny/releases/download/v3.9.0/dafny-3.9.0-x64-ubuntu-16.04.zip -L -o ~/dafny.zip
