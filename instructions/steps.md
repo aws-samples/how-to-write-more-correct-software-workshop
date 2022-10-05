@@ -82,12 +82,15 @@ We have given you a specification in `aws-kms-key-arn.txt`.
 This has been lightly edited from the [AWS Encryption SDK](https://github.com/awslabs/aws-encryption-sdk-specification/blob/master/framework/aws-kms/aws-kms-key-arn.md)
 for this workshop. This is no made-up problem we're solving!
 
+Take a minute to read the specification
+and understand what we're asking you to implement.
+
 Currently `duvet` is optimized to handle RFC style (ITEF) files.
 We have converted the markdown specification into this format for you.
 Soon, `duvet` will support markdown directly.
 
 `duvet` can read text documents
-and extract MUST/SHOULD ([RFC-2119](https://datatracker.ietf.org/doc/html/rfc2119) normative language) as requirements.
+and extract MUST/SHOULD ([RFC-2119](https://datatracker.ietf.org/doc/html/rfc2119) normative language) statements as requirements.
 `duvet` will keep track of these requirements for us.
 It will help us account every requirement,
 and ask us to provide some evidence that our implementation of the requirements are correct.
@@ -124,7 +127,8 @@ for our `aws-kms-key-arn` specification.
 Click on the specification and you can see details on these requirements.
 We will start on section `2.5` so go ahead
 and click on one of the `2.5` links in the left-most column
-and take a minute to read the specification.
+and take a minute to look at this part of the specification
+and how it breaks down into a checklist.
 
 ## Step 3
 
@@ -725,7 +729,7 @@ of this function matches the signature and will not crash at runtime.
 
 Now that we have a valid implementation, let's review it for correctness.
 Our first requirement is
-'A string with 5 ":" that MUST delimit following 6 parts:'.
+'A valid AWS KMS ARN is a string with 5 ":" that MUST delimit the following 6 parts:'.
 
 <!-- !test check ParseAwsKmsArn Correctness -->
 ```dafny
@@ -780,7 +784,7 @@ in the code that looks like this
 
     //= aws-kms-key-arn.txt#2.5
     //= type=implication
-    //# A string with 5 ":" that MUST delimit following 6 parts:
+    //# A valid AWS KMS ARN is a string with 5 ":" that MUST delimit the following 6 parts:
 
 ```
 
@@ -821,12 +825,12 @@ Most of this syntax we have already gone over.
 
     //= aws-kms-key-arn.txt#2.5
     //= type=implication
-    //# A string with 5 ":" that MUST delimit following 6 parts:
+    //# A valid AWS KMS ARN is a string with 5 ":" that MUST delimit the following 6 parts:
     ensures result.Success? ==> |Split(identifier, ':')| == 6
 
     //= aws-kms-key-arn.txt#2.5
     //= type=implication
-    //# MUST start with string "arn"
+    //# It MUST start with string "arn"
     ensures result.Success? ==> "arn" <= identifier
 
     //= aws-kms-key-arn.txt#2.5
@@ -907,7 +911,7 @@ So let's fix that.
     //= aws-kms-key-arn.txt#2.5
     //= type=implication
     //# It MUST be split by a
-    //# single "/" any additional "/" are included in the resource id
+    //# single "/", with any any additional "/" included in the resource id
     ensures result.Success?
     ==>
       && '/' in arnResource
@@ -967,7 +971,7 @@ Now we can add an implementation to `ParseAwsKmsResource`.
     //= aws-kms-key-arn.txt#2.5
     //= type=implication
     //# It MUST be split by a
-    //# single "/" any additional "/" are included in the resource id
+    //# single "/", with any any additional "/" included in the resource id
     ensures result.Success?
     ==>
       && '/' in arnResource
@@ -1172,7 +1176,7 @@ First `MultiRegionAwsKmsArn?`
 
     //= aws-kms-key-arn.txt#2.8
     //= type=implication
-    //# If resource type is "key" and resource ID starts with
+    //# If the resource type is "key" and the resource ID starts with
     //# "mrk-", this is a AWS KMS multi-Region key ARN and MUST return true.
     ensures
       && arn.resource.resourceType == "key"
@@ -1182,7 +1186,7 @@ First `MultiRegionAwsKmsArn?`
 
     //= aws-kms-key-arn.txt#2.8
     //= type=implication
-    //# If resource type is "key" and resource ID does not start with "mrk-",
+    //# If the resource type is "key" and the resource ID does not start with "mrk-",
     //# this is a (single-region) AWS KMS key ARN and MUST return false.
     ensures
       && arn.resource.resourceType == "key"
@@ -1334,8 +1338,7 @@ This simplifies our first requirement:
     //= aws-kms-key-arn.txt#2.9
     //= type=implication
     //# If the input starts with "arn:", this MUST return the output of
-    //# identifying an an AWS KMS multi-Region ARN (aws-kms-key-
-    //# arn.md#identifying-an-an-aws-kms-multi-region-arn) called with this
+    //# identifying an an AWS KMS multi-Region ARN (Section 2.8) called with this
     //# input.
     ensures "arn:" <= identifier
       ==>
@@ -1417,8 +1420,7 @@ Putting that all together we get.
     //= aws-kms-key-arn.txt#2.9
     //= type=implication
     //# If the input starts with "arn:", this MUST return the output of
-    //# identifying an an AWS KMS multi-Region ARN (aws-kms-key-
-    //# arn.md#identifying-an-an-aws-kms-multi-region-arn) called with this
+    //# identifying an an AWS KMS multi-Region ARN (Section 2.8) called with this
     //# input.
     ensures "arn:" <= identifier
       ==>
