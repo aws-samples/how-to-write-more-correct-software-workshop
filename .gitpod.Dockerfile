@@ -1,6 +1,7 @@
 FROM gitpod/workspace-full:2022-05-08-14-31-53
 
 # Add the Microsoft package signing key to the list of trusted keys and add the package repository.
+# https://learn.microsoft.com/en-us/dotnet/core/install/linux-ubuntu#2004
 RUN wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O ~/packages-microsoft-prod.deb
 RUN sudo dpkg -i ~/packages-microsoft-prod.deb
 RUN rm ~/packages-microsoft-prod.deb
