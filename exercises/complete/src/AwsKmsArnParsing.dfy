@@ -22,31 +22,31 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
     nameonly value: string
   )
 
-  predicate AwsArn?(arn:AwsArn)
+  predicate ValidAwsArn?(arn:AwsArn)
   {
     && arn.arnLiteral == "arn"
     && 0 < |arn.partition|
     && 0 < |arn.service|
     && 0 < |arn.region|
     && 0 < |arn.account|
-    && AwsResource?(arn.resource)
+    && ValidAwsResource?(arn.resource)
   }
 
-  predicate AwsResource?(resource:AwsResource)
+  predicate ValidAwsResource?(resource:AwsResource)
   {
     && 0 < |resource.value|
   }
 
   predicate AwsKmsArn?(arn:AwsArn)
   {
-    && AwsArn?(arn)
+    && ValidAwsArn?(arn)
     && arn.service == "kms"
     && AwsKmsResource?(arn.resource)
   }
 
   predicate AwsKmsResource?(resource:AwsResource)
   {
-    && AwsResource?(resource)
+    && ValidAwsResource?(resource)
     && (
       || resource.resourceType == "key"
       || resource.resourceType == "alias"
@@ -104,7 +104,7 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
 
     :- Need(6 == |components|, "Malformed arn: " + identifier);
 
-    var resource :- ParseAwsKmsResources(components[5]);
+    var resource :- ParseAwsKmsResource(components[5]);
 
     var arn := AwsArn(
       arnLiteral := components[0],
@@ -120,7 +120,7 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
     Success(arn)
   }
 
-  function ParseAwsKmsResources(arnResource: string)
+  function ParseAwsKmsResource(arnResource: string)
     : (result: Result<AwsKmsResource, string>)
 
     //= aws-kms-key-arn.txt#2.5
@@ -162,11 +162,11 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
     Success(resource)
   }
 
-  function ParseAwsKmsRawResources(identifier: string)
+  function ParseAwsKmsRawResource(identifier: string)
     : (result: Result<AwsKmsResource, string>)
   {
     if "alias/" <= identifier then
-      ParseAwsKmsResources(identifier)
+      ParseAwsKmsResource(identifier)
     else
       :- Need(!("key/" <= identifier) && 0 < |identifier|, "Malformed raw key id: " + identifier);
       var resource := AwsResource(
@@ -188,7 +188,7 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
       var arn :- ParseAwsKmsArn(identifier);
       Success(AwsKmsArnIdentifier(arn))
     else
-      var r :- ParseAwsKmsRawResources(identifier);
+      var r :- ParseAwsKmsRawResource(identifier);
       Success(AwsKmsRawResourceIdentifier(r))
   }
 
