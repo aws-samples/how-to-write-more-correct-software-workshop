@@ -662,7 +662,7 @@ You can think of this as a drastically simplified model
 of throwing exceptions.
 It will first look at the value to the right of the `:-`:
 * If it is a `Success`, it will extract the value and evaluate the expression that follows the `;`. In this case, that means the remaining lines of the function body.
-* If it is a `Failure`, it will propagate that value as the result
+* If it is a `Failure`, it will propagate that error as the result
 of the whole surrounding expression. In this case, that means the whole function body.
 
 In the case of `Need`,
