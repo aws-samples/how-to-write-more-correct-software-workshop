@@ -397,7 +397,7 @@ with these naive signatures.
 
   function ParseAwsKmsArn(identifier: string)
     : (result: AwsKmsArn)
-  function ParseAwsKmsResources(identifier: string)
+  function ParseAwsKmsResource(identifier: string)
     : (result: AwsKmsResource)
 
 ```
@@ -447,7 +447,7 @@ is the expression following the last `;`.
   {
     var components := Split(identifier, ':');
 
-    var resource := ParseAwsKmsResources(components[5]);
+    var resource := ParseAwsKmsResource(components[5]);
 
     var arn := AwsArn(
       arnLiteral := components[0],
@@ -559,7 +559,7 @@ Update our function like so:
   {
     var components := Split(identifier, ':');
 
-    var resource := ParseAwsKmsResources(components[5]);
+    var resource := ParseAwsKmsResource(components[5]);
 
     var arn := AwsArn(
       arnLiteral := components[0],
@@ -596,7 +596,7 @@ We could write:
       Failure("Malformed arn: " + identifier)
     else
 
-      var resource := ParseAwsKmsResources(components[5]);
+      var resource := ParseAwsKmsResource(components[5]);
 
       var arn := AwsArn(
         arnLiteral := components[0],
@@ -636,7 +636,7 @@ Instead we will use
 
     :- Need(6 == |components|, "Malformed arn: " + identifier);
 
-    var resource := ParseAwsKmsResources(components[5]);
+    var resource := ParseAwsKmsResource(components[5]);
 
     var arn := AwsArn(
       arnLiteral := components[0],
@@ -700,7 +700,7 @@ is all we need.
 
     :- Need(6 == |components|, "Malformed arn: " + identifier);
 
-    var resource := ParseAwsKmsResources(components[5]);
+    var resource := ParseAwsKmsResource(components[5]);
 
     var arn := AwsArn(
       arnLiteral := components[0],
@@ -811,7 +811,7 @@ This requirement is now green!
 
 Looking at our specification
 we can fill in several of our requirements.
-All of this syntax we have already gone over.
+Most of this syntax we have already gone over.
 
 <!-- !test check ParseAwsKmsArn all requirement -->
 ```dafny
@@ -856,14 +856,14 @@ All of this syntax we have already gone over.
 
 ```
 
+There's just one new feature to explain:
+
 1. `"arn" <= identifier`
-Since Dafny treats `string` as a sequence characters
-`<=` means "start with".
-This is probably a little surprising.
-But the only way for 2 sequences to be equal
-is if they are the same length
-and every element is the same in the same order.
-This bounds the "greater than" to adding any number of elements.
+Since Dafny treats `string` as a pure sequence of characters,
+`<=` means "starts with".
+This is probably a little surprising,
+but turns out to be the most convenient meaning
+when using sequences in Dafny specifications.
 
 But wait!
 Dafny is complaining:
@@ -871,13 +871,13 @@ The postcondition
 `ensures result.Success? ==> 0 < |Split(identifier, ':')[5]|`
 may not hold.
 
-Hum, obviously we need to update `ParseAwsKmsResources`
+Hmm, obviously we need to update `ParseAwsKmsResource`
 to return a `Result`.
 
-<!-- !test check ParseAwsKmsResources stub -->
+<!-- !test check ParseAwsKmsResource stub -->
 ```dafny
 
-  function ParseAwsKmsResources(arnResource: string)
+  function ParseAwsKmsResource(arnResource: string)
     : (result: Result<AwsKmsResource, string>)
 
 ```
@@ -887,21 +887,21 @@ Since we return a `Result` now.
 
 ```dafny
 
-    var resource :- ParseAwsKmsResources(components[5]);
+    var resource :- ParseAwsKmsResource(components[5]);
 
 ```
 
 Dafny is still complaining.
 Let's think about this.
-`ParseAwsKmsResources` does not have any `ensures` on it.
+`ParseAwsKmsResource` does not have any `ensures` on it.
 So Dafny is unable to make any connection
 between the `AwsKmsResource` and the input `string`.
 So let's fix that.
 
-<!-- !test check ParseAwsKmsResources all requirements -->
+<!-- !test check ParseAwsKmsResource all requirements -->
 ```dafny
 
-  function ParseAwsKmsResources(arnResource: string)
+  function ParseAwsKmsResource(arnResource: string)
     : (result: Result<AwsKmsResource, string>)
 
     //= aws-kms-key-arn.txt#2.5
@@ -938,7 +938,7 @@ Now we show that Dafny will honor
 requirements on these stubs.
 Since Dafny will also force us
 to `ensure` these requirements in our implementation
-this kind of specification driven development
+this kind of specification-driven development
 is a powerful tool in our toolbox.
 
 Second, if we run
@@ -946,7 +946,7 @@ Second, if we run
 make duvet_report
 ```
 
-Now our report is complete.
+Now section 2.5 of our report is complete.
 Once we add an implementation
 to this `function` that Dafny will accept
 we are done with this section!
@@ -956,12 +956,12 @@ and see if you can work out why this is indeed enforced.
 
 ## Step 15
 
-Now we can add an implementation to `ParseAwsKmsResources`.
+Now we can add an implementation to `ParseAwsKmsResource`.
 
-<!-- !test check ParseAwsKmsResources full -->
+<!-- !test check ParseAwsKmsResource full -->
 ```dafny
 
-  function ParseAwsKmsResources(arnResource: string)
+  function ParseAwsKmsResource(arnResource: string)
     : (result: Result<AwsKmsResource, string>)
 
     //= aws-kms-key-arn.txt#2.5
@@ -1002,9 +1002,8 @@ Now we can add an implementation to `ParseAwsKmsResources`.
 
 1. `info[1..]`
 This is a slice notation.
-This will return a new sequence.
-It will include the second element.
-If you want more details see [here](https://dafny.org/dafny/DafnyRef/DafnyRef#sec-other-sequence-expressions)
+This will return a new sequence value identical to the original, but dropping the first element.
+If you want more details, see [here](https://dafny.org/dafny/DafnyRef/DafnyRef#sec-other-sequence-expressions).
 
 
 ## Step 16
@@ -1015,7 +1014,7 @@ This is covered in sections 2.8 and 2.9.
 This adds some complexity.
 Since a raw key id is not a complete resource section.
 
-So let's throw up the last of our implementation as stubs
+So let's throw up the last of our implementation as stubs:
 
 <!-- !test check Identifier stubs -->
 ```dafny
@@ -1027,7 +1026,7 @@ So let's throw up the last of our implementation as stubs
   function ParseAwsKmsIdentifier(identifier: string)
     : (result: Result<AwsKmsIdentifier, string>)
 
-  function ParseAwsKmsRawResources(identifier: string)
+  function ParseAwsKmsRawResource(identifier: string)
     : (result: Result<AwsKmsResource, string>)
 
   //= aws-kms-key-arn.txt#2.8
@@ -1071,7 +1070,7 @@ Let's go with "It starts with arn:".
       var arn :- ParseAwsKmsArn(identifier);
       Success(AwsKmsArnIdentifier(arn))
     else
-      var r :- ParseAwsKmsRawResources(identifier);
+      var r :- ParseAwsKmsRawResource(identifier);
       Success(AwsKmsRawResourceIdentifier(r))
   }
 
@@ -1079,16 +1078,16 @@ Let's go with "It starts with arn:".
 
 ## Step 18
 
-Lets do `ParseAwsKmsRawResources`.
+Lets do `ParseAwsKmsRawResource`.
 First we will do a quick naive implementation.
 
 ```dafny
 
-  function ParseAwsKmsRawResources(identifier: string)
+  function ParseAwsKmsRawResource(identifier: string)
     : (result: Result<AwsKmsResource, string>)
   {
     if "alias/" <= identifier then
-      ParseAwsKmsResources(identifier)
+      ParseAwsKmsResource(identifier)
     else
       :- Need(!("key/" <= identifier), "Malformed raw key id: " + identifier);
       var resource := AwsResource(
@@ -1101,14 +1100,14 @@ First we will do a quick naive implementation.
 
 ```
 
-Hum, so Dafny does not believe us.
+Hmm, so Dafny does not believe us.
 Let's see,
 does it believe
 ```dafny
 assert resource.resourceType == "key";
 ```
 
-Hum, so what is the other condition then?
+Hmm, so what is the other condition then?
 ```dafny
 assert 0 < |resource.value|;
 ```
@@ -1120,18 +1119,25 @@ from the `Success` to the `assert`.
 Where the Dafny error message is
 also gives us information we can use.
 
-Now we could use `ParseAwsKmsResources`
+This does NOT mean that the `Success` magically became correct!
+Dafny is just telling you that IF `0 < |resource.value|` is true,
+the return value is correct.
+It is important to keep in mind that all of these assertions are connected,
+and if any single assertion is not proven,
+it means you can't necessarily trust the proof of any others.
+
+Now we could use `ParseAwsKmsResource`
 but that has a bunch of redundant string operations.
 Let's just add the condition to our existing `Need`:
 
-<!-- !test check ParseAwsKmsRawResources complete -->
+<!-- !test check ParseAwsKmsRawResource complete -->
 ```dafny
 
-  function ParseAwsKmsRawResources(identifier: string)
+  function ParseAwsKmsRawResource(identifier: string)
     : (result: Result<AwsKmsResource, string>)
   {
     if "alias/" <= identifier then
-      ParseAwsKmsResources(identifier)
+      ParseAwsKmsResource(identifier)
     else
       :- Need(!("key/" <= identifier) && 0 < |identifier|, "Malformed raw key id: " + identifier);
       var resource := AwsResource(
@@ -1201,7 +1207,7 @@ it does not know anything about `MultiRegionAwsKmsResource?`.
 Let's just add it this time.
 
 This is always a `key` that starts with `mrk-`.
-Given everything we have learned we have learned:
+Given everything we have learned we have:
 
 <!-- !test check MultiRegionAwsKmsResource? -->
 ```dafny
@@ -1220,7 +1226,7 @@ and see that these conditions would be correct.
 This transparency of `function`s can be powerful.
 But Dafny can not unroll every function.
 
-Finally `MultiRegionAwsKmsIdentifier?`!!
+Finally, `MultiRegionAwsKmsIdentifier?`!
 
 <!-- !test check MultiRegionAwsKmsIdentifier? -->
 ```dafny
@@ -1240,18 +1246,20 @@ Finally `MultiRegionAwsKmsIdentifier?`!!
 
 ```
 
-The `match` expression.
-This looks at they possible constructors of `AwsKmsIdentifier`
+This `match` expression looks at the possible constructors of `AwsKmsIdentifier`
 and creates a branch for each one.
 If say `AwsKmsArnIdentifier` had more arguments,
 then we would be required to list them all.
-These arguments the bind variables that are in scope
+The arguments bind variables that are in scope
 in that `case` branch.
 
 ## Step 20
 
 Wait!
-Run `make duvet_report`.
+Run `make duvet_report` and notice the command still fails.
+Click "Compliance Coverage Report" in the header bar of the report
+to navigate back to the top.
+
 We are missing some proof.
 Section 2.9.
 
@@ -1303,7 +1311,7 @@ we want to deal with every string that could be a `AwsKmsIdentifier`.
 
 For this we need a precondition.
 Something that MUST be true *before* the function is evaluated.
-Dafny expresses this with the keyword `requires`
+Dafny expresses this with the keyword `requires`:
 
 <!-- !test check MultiRegionAwsKmsIdentifier?Correct with requires -->
 ```dafny
@@ -1315,7 +1323,7 @@ Dafny expresses this with the keyword `requires`
 
 Now everywhere we can assume that the string `s`
 is a valid `AwsKmsIdentifier`!
-This simplifies our first requirement
+This simplifies our first requirement:
 
 <!-- !test check MultiRegionAwsKmsIdentifier?Correct first ensures -->
 ```dafny
