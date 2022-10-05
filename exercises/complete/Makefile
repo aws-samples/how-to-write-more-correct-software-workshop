@@ -1,3 +1,5 @@
+.PHONY: all
+all: verify execute
 
 verify:
 	dafny -compile:0 -trace src/*.dfy

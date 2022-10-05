@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.245.2/containers/codespaces-linux
 {
-	"name": "GitHub Codespaces (Default)",
+	"name": "How To Write More Correct Software Workshop",
 
 	"build": {
 		"dockerfile": "Dockerfile"
@@ -12,7 +12,7 @@
 		// Configure properties specific to VS Code.
 		"vscode": {
 			// Set *default* container specific settings.json values on container create.
-			"settings": { 
+			"settings": {
 				"go.toolsManagement.checkForUpdates": "local",
 				"go.useLanguageServer": true,
 				"go.gopath": "/go",
@@ -36,16 +36,17 @@
 			
 			// Add the IDs of extensions you want installed when the container is created.
 			"extensions": [
-				"GitHub.vscode-pull-request-github"
+				"GitHub.vscode-pull-request-github",
+				"dafny-lang.ide-vscode@2.8.2",
+				"ritwickdey.liveserver"
 			]
 		}
 	},
 
+	// Comment out to run as root instead.
 	"remoteUser": "codespace",
 
 	"overrideCommand": false,
-
-	"mounts": ["source=codespaces-linux-var-lib-docker,target=/var/lib/docker,type=volume"],
 
 	"runArgs": [
 		"--cap-add=SYS_PTRACE",
@@ -54,7 +55,7 @@
 		"--privileged",
 		"--init"
 	],
-	
+
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 

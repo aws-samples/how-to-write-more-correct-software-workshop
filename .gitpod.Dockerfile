@@ -1,19 +1,19 @@
-# See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.245.2/containers/codespaces-linux/.devcontainer/base.Dockerfile
-FROM mcr.microsoft.com/vscode/devcontainers/universal:2-focal
+FROM gitpod/workspace-full:2022-05-08-14-31-53
 
-USER root
+# Add the Microsoft package signing key to the list of trusted keys and add the package repository.
+# https://learn.microsoft.com/en-us/dotnet/core/install/linux-ubuntu#2004
+RUN wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O ~/packages-microsoft-prod.deb
+RUN sudo dpkg -i ~/packages-microsoft-prod.deb
+RUN rm ~/packages-microsoft-prod.deb
 
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive
-
-USER codespace
+# Install .NET Runtime
+RUN sudo apt-get update && \
+  sudo apt-get install -y aspnetcore-runtime-6.0
 
 # Install Dafny
 RUN curl https://github.com/dafny-lang/dafny/releases/download/v3.9.0/dafny-3.9.0-x64-ubuntu-16.04.zip -L -o ~/dafny.zip
 RUN unzip -qq -d ~ ~/dafny.zip && rm ~/dafny.zip
 RUN echo 'export PATH="${HOME}/dafny:$PATH"' >> $HOME/.bashrc
-
-# Install Rust
-RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 
 # Install Duvet
 # TODO: Could this be cleaner? 
