@@ -48,7 +48,7 @@ You will need to install the following:
     2. Then run `cargo +stable install duvet`)
 3. [Visual Studio Code](https://code.visualstudio.com/download), plus some necessary extensions:
     1. [Dafny](https://marketplace.visualstudio.com/items?itemName=dafny-lang.ide-vscode)
-    2. [Live Server](https://marketplace.visualstudio.com/items?itemName=dafny-lang.ide-vscode)
+    2. [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer)
 
 ## Security
 
