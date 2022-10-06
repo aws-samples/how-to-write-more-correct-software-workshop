@@ -36,8 +36,6 @@ The `exercises/start` directory contains our initial state,
 with a few files to get you started.
 
 In VS Code, open the file `exercises/start/src/AwsKmsArnParsing.dfy`.
-If you're using our provided development environment,
-VS Code should have already opened this for you.
 You should see:
 
 <!-- !test check prelude -->

@@ -4,8 +4,6 @@ image:
 tasks:
   - name: Install dependencies
     init: make install_dependencies
-  - name: Open starting file
-    command: code exercises/start/AwsKmsArnParsing.dfy
 
 vscode:
   extensions:

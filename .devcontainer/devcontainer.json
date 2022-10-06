@@ -59,7 +59,5 @@
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 
-	"postCreateCommand": "make install_dependencies",
-
-  "postAttachCommand": "code exercises/start/AwsKmsArnParsing.dfy"
+	"postCreateCommand": "make install_dependencies"
 }
