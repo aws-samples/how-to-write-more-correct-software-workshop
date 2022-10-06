@@ -7,9 +7,7 @@ These instructions are provided as a backup if you are not able to use our provi
 
 Click the badge below to open this repository in a GitHub Codespace. This is currently only available for users in the [personal account beta](https://docs.github.com/en/codespaces/overview).
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=542194938){:target="_blank"}
-
-This is currently only available for users in the [personal account beta](https://docs.github.com/en/codespaces/overview).
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=542194938)
 
 ## Manual setup
 
