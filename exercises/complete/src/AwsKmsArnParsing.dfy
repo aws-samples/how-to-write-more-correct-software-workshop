@@ -22,31 +22,31 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
     nameonly value: string
   )
 
-  predicate AwsArn?(arn:AwsArn)
+  predicate ValidAwsArn?(arn:AwsArn)
   {
     && arn.arnLiteral == "arn"
     && 0 < |arn.partition|
     && 0 < |arn.service|
     && 0 < |arn.region|
     && 0 < |arn.account|
-    && AwsResource?(arn.resource)
+    && ValidAwsResource?(arn.resource)
   }
 
-  predicate AwsResource?(resource:AwsResource)
+  predicate ValidAwsResource?(resource:AwsResource)
   {
     && 0 < |resource.value|
   }
 
   predicate AwsKmsArn?(arn:AwsArn)
   {
-    && AwsArn?(arn)
+    && ValidAwsArn?(arn)
     && arn.service == "kms"
     && AwsKmsResource?(arn.resource)
   }
 
   predicate AwsKmsResource?(resource:AwsResource)
   {
-    && AwsResource?(resource)
+    && ValidAwsResource?(resource)
     && (
       || resource.resourceType == "key"
       || resource.resourceType == "alias"
@@ -66,12 +66,12 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
 
     //= aws-kms-key-arn.txt#2.5
     //= type=implication
-    //# A string with 5 ":" that MUST delimit following 6 parts:
+    //# A valid AWS KMS ARN is a string with 5 ":" that MUST delimit the following 6 parts:
     ensures result.Success? ==> |Split(identifier, ':')| == 6
 
     //= aws-kms-key-arn.txt#2.5
     //= type=implication
-    //# MUST start with string "arn"
+    //# It MUST start with string "arn"
     ensures result.Success? ==> "arn" <= identifier
 
     //= aws-kms-key-arn.txt#2.5
@@ -104,7 +104,7 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
 
     :- Need(6 == |components|, "Malformed arn: " + identifier);
 
-    var resource :- ParseAwsKmsResources(components[5]);
+    var resource :- ParseAwsKmsResource(components[5]);
 
     var arn := AwsArn(
       arnLiteral := components[0],
@@ -120,13 +120,13 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
     Success(arn)
   }
 
-  function ParseAwsKmsResources(arnResource: string)
+  function ParseAwsKmsResource(arnResource: string)
     : (result: Result<AwsKmsResource, string>)
 
     //= aws-kms-key-arn.txt#2.5
     //= type=implication
     //# It MUST be split by a
-    //# single "/" any additional "/" are included in the resource id
+    //# single "/", with any any additional "/" included in the resource id
     ensures result.Success?
     ==>
       && '/' in arnResource
@@ -162,11 +162,11 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
     Success(resource)
   }
 
-  function ParseAwsKmsRawResources(identifier: string)
+  function ParseAwsKmsRawResource(identifier: string)
     : (result: Result<AwsKmsResource, string>)
   {
     if "alias/" <= identifier then
-      ParseAwsKmsResources(identifier)
+      ParseAwsKmsResource(identifier)
     else
       :- Need(!("key/" <= identifier) && 0 < |identifier|, "Malformed raw key id: " + identifier);
       var resource := AwsResource(
@@ -188,7 +188,7 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
       var arn :- ParseAwsKmsArn(identifier);
       Success(AwsKmsArnIdentifier(arn))
     else
-      var r :- ParseAwsKmsRawResources(identifier);
+      var r :- ParseAwsKmsRawResource(identifier);
       Success(AwsKmsRawResourceIdentifier(r))
   }
 
@@ -206,7 +206,7 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
 
     //= aws-kms-key-arn.txt#2.8
     //= type=implication
-    //# If resource type is "key" and resource ID starts with
+    //# If the resource type is "key" and the resource ID starts with
     //# "mrk-", this is a AWS KMS multi-Region key ARN and MUST return true.
     ensures
       && arn.resource.resourceType == "key"
@@ -216,7 +216,7 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
 
     //= aws-kms-key-arn.txt#2.8
     //= type=implication
-    //# If resource type is "key" and resource ID does not start with "mrk-",
+    //# If the resource type is "key" and the resource ID does not start with "mrk-",
     //# this is a (single-region) AWS KMS key ARN and MUST return false.
     ensures
       && arn.resource.resourceType == "key"
@@ -252,8 +252,7 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
     //= aws-kms-key-arn.txt#2.9
     //= type=implication
     //# If the input starts with "arn:", this MUST return the output of
-    //# identifying an an AWS KMS multi-Region ARN (aws-kms-key-
-    //# arn.md#identifying-an-an-aws-kms-multi-region-arn) called with this
+    //# identifying an an AWS KMS multi-Region ARN (Section 2.8) called with this
     //# input.
     ensures "arn:" <= identifier
       ==>

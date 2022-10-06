@@ -1,4 +1,4 @@
-target = "aws-kms-key-arn.txt#section-2.8"
+target = "aws-kms-key-arn.txt#2.8"
 
 # 2.8.  Identifying an an AWS KMS multi-Region ARN
 #
@@ -7,9 +7,9 @@ target = "aws-kms-key-arn.txt#section-2.8"
 # If the input is an invalid AWS KMS ARN this function MUST error.
 # 
 # If resource type is "alias", this is an AWS KMS alias ARN and MUST
-# return false.  If resource type is "key" and resource ID starts with
+# return false.  If the resource type is "key" and the resource ID starts with
 # "mrk-", this is a AWS KMS multi-Region key ARN and MUST return true.
-# If resource type is "key" and resource ID does not start with "mrk-",
+# If the resource type is "key" and the resource ID does not start with "mrk-",
 # this is a (single-region) AWS KMS key ARN and MUST return false.
 
 [[spec]]
@@ -34,14 +34,14 @@ return false.
 [[spec]]
 level = "MUST"
 quote = '''
-If resource type is "key" and resource ID starts with
+If the resource type is "key" and the resource ID starts with
 "mrk-", this is a AWS KMS multi-Region key ARN and MUST return true.
 '''
 
 [[spec]]
 level = "MUST"
 quote = '''
-If resource type is "key" and resource ID does not start with "mrk-",
+If the resource type is "key" and the resource ID does not start with "mrk-",
 this is a (single-region) AWS KMS key ARN and MUST return false.
 '''
 
