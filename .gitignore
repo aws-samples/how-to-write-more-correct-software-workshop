@@ -4,5 +4,9 @@
 /exercises/start/aws-kms-key-arn
 /exercises/start/compliance_report.html
 
+/exercises/complete/node_modules
+/exercises/complete/package.json
+/exercises/complete/package-lock.json
 /exercises/complete/src/Index-go
 /exercises/complete/src/Index-java
+/exercises/complete/src/Index-py
