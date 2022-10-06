@@ -545,7 +545,7 @@ But we will go over everything you need.
 
 First we need a type that can express
 the difference between `Success` and `Failure`.
-In the `Wrappers` module defined in the `include.dfy` file,
+In the `Wrappers` module defined in the `Wrappers.dfy` file,
 the `Result` type does exactly this.
 It takes 2 type parameters.
 One for the `Success` and the other for `Failure`[^monad]
@@ -1470,7 +1470,8 @@ make duvet_report
 ```
 
 Success! The command no longer fails
-(if you don't believe the lack of error messages, you can check with `echo $?`).
+(if you don't believe the lack of error messages, you can check with `echo $?`)
+and the report is a happy sea of green.
 Congratulations on your formally-verified implementation!
 
 ## Extra Credit
@@ -1489,3 +1490,7 @@ Here are a couple of bonus questions if you are hungry for more:
    function and write a lemma to prove that it is always
    the inverse of `ParseAwsKmsIdentifier`.
    You will find one possible solution [here](../exercises/complete/src/SoundnessVsCompletness.dfy).
+
+3. `Split` and `Join` are relatively simple functions.
+    Try replacing the functions we gave you with your own. 
+    If you really want to flex, get it to verify *before* writing your implementation.
