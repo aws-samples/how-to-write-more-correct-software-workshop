@@ -24,4 +24,4 @@ verify_complete:
 	$(MAKE) -C exercises/complete
 
 assert_unchanged:
-	git diff --exit-code || (echo "ERROR: Source changes detected (see above). Build the reference manual locally and commit these changes." && exit 1)
+	git diff --exit-code || (echo "ERROR: Source changes detected (see above)." && exit 1)
