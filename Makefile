@@ -23,5 +23,9 @@ makefiles_are_the_same:
 verify_complete:
 	$(MAKE) -C exercises/complete
 
+install_dependencies:
+	$(MAKE) -C exercises/start install_dependencies
+	$(MAKE) -C exercises/complete install_dependencies
+
 assert_unchanged:
 	git diff --exit-code || (echo "ERROR: Source changes detected (see above)." && exit 1)

@@ -4,9 +4,7 @@ all: duvet_extract duvet_ci verify execute
 verify:
 	dafny -compile:0 -trace src/*.dfy
 
-execute: | execute_cs execute_go execute_java
-
-execute_fail: | execute_js execute_py execute_cpp
+execute: | execute_cs execute_go execute_java execute_js execute_py
 
 execute_cs:
 	dafny \
@@ -87,3 +85,7 @@ duvet_ci:
   	--require-tests true \
 		--no-cargo \
 		--source-pattern src/*.dfy
+
+# Invoked as part of the containter set-up, so doesn't need to be part of "all"
+install_dependencies:
+	npm install bignumber.js
