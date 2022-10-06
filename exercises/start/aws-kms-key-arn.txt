@@ -62,9 +62,12 @@ Table of Contents
 
 2.3.  Overview
 
-   AWS KMS Key ARNs generally follow AWS ARN
+   
+   arn:partition:service:region:account-id:resource-type:resource-id
+
+   AWS KMS Key ARNs generally follow the AWS ARN syntax
    (https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-
-   namespaces.html)) but there are a few subtle differences.  This is
+   namespaces.html) but there are a few subtle differences.  This is
    NOT the authoritative source for these rules, it is just a
    specification for how the ESDK processes AWS KMS CMK ARNs.
 
@@ -79,9 +82,13 @@ Table of Contents
 
 2.5.  A valid AWS KMS ARN
 
-   A string with 5 ":" that MUST delimit following 6 parts:
+   An AWS KMS Key ARN is a string in the form:
 
-   1.  MUST start with string "arn"
+   arn:partition:service:region:account:resource-type/resource-id
+
+   A valid AWS KMS ARN is a string with 5 ":" that MUST delimit the following 6 parts:
+
+   1.  It MUST start with string "arn"
 
    2.  The partition MUST be a non-empty
 
@@ -92,21 +99,23 @@ Table of Contents
    5.  The account MUST be a non-empty string
 
    6.  The resource section MUST be non-empty. It MUST be split by a
-       single "/" any additional "/" are included in the resource id
+       single "/", with any any additional "/" included in the resource id
 
        1.  The resource type MUST be either "alias" or "key"
 
        2.  The resource id MUST be a non-empty string
 
+  
+
 2.6.  A valid AWS KMS identifier
 
-   An AWS KMS identifer can be any of the following
+   An AWS KMS identifier can be any of the following
 
    *  A valid AWS KMS ARN
 
-   *  AWS KMS alias, the resource section of an AWS KMS alias ARN
+   *  AWS KMS alias, consisting of only the resource section of an AWS KMS alias ARN
 
-   *  AWS KMS key id, the resource id of an AWS KMS key ARN
+   *  AWS KMS key id, consisting of only the resource id of an AWS KMS key ARN
 
 2.7.  AWS KMS multi-Region keys
 
@@ -130,7 +139,7 @@ Table of Contents
 
    *  AWS KMS alias ("alias/test-key")
 
-   Since the alias is can be any string a customer can create an alias
+   Since the alias can be any string a customer can create an alias
    that started with "mrk-".  But an alias is not a multi-Region key.
 
 2.8.  Identifying an an AWS KMS multi-Region ARN
@@ -140,18 +149,17 @@ Table of Contents
    If the input is an invalid AWS KMS ARN this function MUST error.
 
    If resource type is "alias", this is an AWS KMS alias ARN and MUST
-   return false.  If resource type is "key" and resource ID starts with
+   return false.  If the resource type is "key" and the resource ID starts with
    "mrk-", this is a AWS KMS multi-Region key ARN and MUST return true.
-   If resource type is "key" and resource ID does not start with "mrk-",
+   If the resource type is "key" and the resource ID does not start with "mrk-",
    this is a (single-region) AWS KMS key ARN and MUST return false.
 
-2.9.  Identifying an an AWS KMS multi-Region identifier
+2.9.  Identifying an AWS KMS multi-Region identifier
 
    This function MUST take a single AWS KMS identifier
 
    If the input starts with "arn:", this MUST return the output of
-   identifying an an AWS KMS multi-Region ARN (aws-kms-key-
-   arn.md#identifying-an-an-aws-kms-multi-region-arn) called with this
+   identifying an an AWS KMS multi-Region ARN (Section 2.8) called with this
    input.  If the input starts with "alias/", this an AWS KMS alias and
    not a multi-Region key id and MUST return false.  If the input starts
    with "mrk-", this is a multi-Region key id and MUST return true.  If

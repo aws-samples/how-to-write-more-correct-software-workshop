@@ -1,5 +1,5 @@
 .PHONY: all
-all: verify execute duvet_extract duvet_report
+all: duvet_extract duvet_ci verify execute 
 
 verify:
 	dafny -compile:0 -trace src/*.dfy
@@ -76,4 +76,14 @@ duvet_report:
 		--source-pattern src/*.dfy
 
 duvet_extract:
-	duvet extract aws-kms-key-arn.txt 
+	duvet extract aws-kms-key-arn.txt
+
+duvet_ci:
+	duvet \
+		report \
+		--ci \
+		--spec-pattern "aws-kms-key-arn/**/*.toml" \
+  	--require-citations true \
+  	--require-tests true \
+		--no-cargo \
+		--source-pattern src/*.dfy

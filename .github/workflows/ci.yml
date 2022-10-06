@@ -14,6 +14,8 @@ jobs:
     - uses: actions/checkout@v2
 
     - run: make steps_are_complete
+    - run: make specifications_are_the_same
+    - run: make makefiles_are_the_same
 
     - name: Install txm for running test
       run: npm install txm
@@ -27,4 +29,6 @@ jobs:
     - name: Build and run dev container task
       uses: devcontainers/ci@v0.2
       with:
-        runCmd: make verify_complete
+        runCmd: |
+          make verify_complete
+          make assert_unchanged
