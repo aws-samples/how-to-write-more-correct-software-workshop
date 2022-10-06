@@ -24,7 +24,7 @@ to ensure we comply with a human-readable specification of correctness.
 First let's spin up a development environment with all the dependencies we'll need.
 Click the button below to open this repository in a GitPod workspace:
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/aws-samples/how-to-write-more-correct-software-workshop){:target="_blank"} 
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/aws-samples/how-to-write-more-correct-software-workshop)
 
 If you are not already signed in as a GitHub user,
 you will be prompted to authenticate through GitHub.
