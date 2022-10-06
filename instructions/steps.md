@@ -21,17 +21,14 @@ to ensure we comply with a human-readable specification of correctness.
 
 ## Step 0
 
-First let's spin up a development environment with all the dependencies we'll need.
-Click <a href="https://gitpod.io/#https://github.com/aws-samples/how-to-write-more-correct-software-workshop" target="_blank">here</a>
-to open this repository in a GitPod workspace in a new tab.
+First let's spin up a development environment with all the dependencies we'll need. Click the button below to open this repository in a GitPod workspace in a new tab. You'll want to open it in a new tab so you can come back to the next step once it finished starting up.
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/aws-samples/how-to-write-more-correct-software-workshop)
+
 If you are not already signed in as a GitHub user,
 you will be prompted to authenticate through GitHub.
 If it doesn't work for whatever reason,
 alternatives are documented [here](./environment-alternatives.md).
-
-Once the workspace has finished starting up,
-which may take a few minutes,
-come back to this page and we can get started!
 
 ## Step 1
 
