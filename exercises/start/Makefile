@@ -2,9 +2,7 @@
 verify:
 	dafny -compile:0 -trace src/*.dfy
 
-execute: | execute_cs execute_go execute_java
-
-execute_fail: | execute_js execute_py execute_cpp
+execute: | execute_cs execute_go execute_java execute_js execute_py
 
 execute_cs:
 	dafny \
