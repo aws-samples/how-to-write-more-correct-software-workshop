@@ -24,7 +24,7 @@ to ensure we comply with a human-readable specification of correctness.
 The `exercises/start` directory contains our initial state,
 with a few files to get you started.
 
-In VS Code, open the file `exercises/start/src/AwsKmsArnParsing.dfy`,
+In VS Code, open the file `exercises/start/src/AwsKmsArnParsing.dfy`.
 You should see:
 
 <!-- !test check prelude -->
