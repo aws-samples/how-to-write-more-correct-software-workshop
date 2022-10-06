@@ -75,3 +75,7 @@ duvet_report:
 
 duvet_extract:
 	duvet extract aws-kms-key-arn.txt 
+
+# Invoked as part of the containter set-up, so doesn't need to be part of "all"
+install_dependencies:
+	npm install bignumber.js

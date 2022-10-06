@@ -17,3 +17,6 @@ steps_are_complete:
 verify_complete:
 	$(MAKE) -C exercises/complete
 
+install_dependencies:
+	$(MAKE) -C exercises/start install_dependencies
+	$(MAKE) -C exercises/complete install_dependencies

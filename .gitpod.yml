@@ -1,6 +1,10 @@
 image:
   file: .gitpod.Dockerfile
 
+tasks:
+  - name: Install dependencies
+    init: make install_dependencies
+
 vscode:
   extensions:
     - https://github.com/dafny-lang/ide-vscode/releases/download/v2.8.3/ide-vscode-2.8.3.vsix
