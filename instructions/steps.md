@@ -22,7 +22,7 @@ to ensure we comply with a human-readable specification of correctness.
 ## Step 0
 
 First let's spin up a development environment with all the dependencies we'll need.
-Click <a href="https://gitpod.io/#https://github.com/aws-samples/how-to-write-more-correct-software-workshop">here</a>
+Click <a href="https://gitpod.io/#https://github.com/aws-samples/how-to-write-more-correct-software-workshop" target="_blank">here</a>
 to open this repository in a GitPod workspace in a new tab.
 If you are not already signed in as a GitHub user,
 you will be prompted to authenticate through GitHub.
