@@ -908,8 +908,8 @@ to return a `Result`.
 
 ```
 
-Whoops, now we also have to update our call in `ParseAwsKmsArn`.
-Since `ParseAwsKmsResource` now returns a `Result`.
+Whoops, now we also have to update our call in `ParseAwsKmsArn`,
+since `ParseAwsKmsResource` now returns a `Result`.
 
 ```dafny
 
