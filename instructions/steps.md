@@ -551,7 +551,7 @@ before the above `assert`.
 ## Step 10
 
 Ok, so what do we do if there are not enough `:` in `identifier`?
-Dafny does not have an ability to `throw` an exception.
+Dafny does not have the ability to `throw` an exception.
 The return type in Dafny is a contract or postcondition.
 That means that with the current function signature,
 we MUST return an `AwsKmsArn` no matter what.
