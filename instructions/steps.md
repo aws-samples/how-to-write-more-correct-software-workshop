@@ -785,7 +785,7 @@ we can read this as
 that the called string was split into 6 parts"
 
 Now, go back to the `duvet` report window (compliance_report.html)
-and click on this requirement
+and click on text of this requirement
 (the first line with a red underline at the top of the page).
 You should get a popup.
 Click on the `IMPLICATION` tab,
@@ -902,8 +902,8 @@ to return a `Result`.
 
 ```
 
-Whoops, now we also have to update our call.
-Since we return a `Result` now.
+Whoops, now we also have to update our call in `ParseAwsKmsArn`.
+Since `ParseAwsKmsResource` now returns a `Result`.
 
 ```dafny
 
@@ -971,7 +971,7 @@ Once we add an implementation
 to this `function` that Dafny will accept
 we are done with this section!
 
-Finally, take a look at the "non-empty" requirement
+Finally, take a look at the "The resource id MUST be a non-empty string" requirement
 and see if you can work out why this is indeed enforced.
 
 ## Step 15
