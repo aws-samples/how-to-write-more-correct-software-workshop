@@ -14,7 +14,7 @@ module Main {
     }
     var args := rawArgs[1..];
     for i := 0 to |args| {
-      var output := AwsKmsArnParsing.ParseAwsKmsIdentifier(args[i]);
+      var output := AwsKmsArnParsing.ParseAwsKmsArn(args[i]);
       print output;
       print "\n";
     }
