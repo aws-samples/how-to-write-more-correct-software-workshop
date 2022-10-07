@@ -8,65 +8,44 @@ execute: | execute_cs execute_go execute_java execute_js execute_py
 
 compile: | compile_cs compile_go compile_js compile_java compile_py
 
-execute_cs:
-	dafny \
-	src/Index.dfy \
-	/compile:3 \
-	/compileTarget:cs \
-	/out:runtimes/AwsKmsArn \
-	--args \
+execute_cs: compile_cs
+	dotnet \
+	runtimes/AwsKmsArn.dll \
 	arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
 	arn:aws-cn:kms:us-west-2:658956600833:b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
 	1234abcd-12ab-34cd-56ef-1234567890ab \
 	"alias\ryans-key"
-execute_go:
-	dafny \
-	src/Index.dfy \
-	/compile:3 \
-	/compileTarget:go \
-	/out:runtimes/AwsKmsArn \
-	--args \
+execute_go: compile_go
+	env \
+	GO111MODULE=auto \
+	GOPATH=$(PWD)/runtimes/AwsKmsArn-go \
+	go run \
+	runtimes/AwsKmsArn-go/src/AwsKmsArn.go \
 	arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
 	1234abcd-12ab-34cd-56ef-1234567890ab \
 	"alias\ryans-key"
-execute_js:
-	dafny \
-	src/Index.dfy \
-	/compile:3 \
-	/compileTarget:js \
-	/out:runtimes/AwsKmsArn \
-	--args \
+execute_js: compile_js
+	node \
+	runtimes/AwsKmsArn.js \
 	arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
 	1234abcd-12ab-34cd-56ef-1234567890ab \
 	"alias\ryans-key"
-execute_java:
-	dafny \
-	src/Index.dfy \
-	/compile:3 \
-	/compileTarget:java \
-	/out:runtimes/AwsKmsArn \
-	--args \
+execute_java: compile_java
+	java \
+	-cp runtimes/AwsKmsArn-java/DafnyRuntime.jar:runtimes/AwsKmsArn-java \
+	AwsKmsArn \
 	arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
 	1234abcd-12ab-34cd-56ef-1234567890ab \
 	"alias\ryans-key"
-execute_py:
-	dafny \
-	src/Index.dfy \
-	/compile:3 \
-	/compileTarget:py \
-	/out:runtimes/AwsKmsArn \
-	--args \
+execute_py: compile_py
+	python3 \
+	runtimes/AwsKmsArn-py/AwsKmsArn.py \
 	arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
 	1234abcd-12ab-34cd-56ef-1234567890ab \
 	"alias\ryans-key"
-execute_cpp:
-	dafny \
-	src/Index.dfy \
-	/compile:3 \
-	/compileTarget:cpp \
-	/out:runtimes/AwsKmsArn \
-	--args \
-	--args arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
+execute_cpp: compile_cpp
+	runtimes/AwsKmsArn.exe \
+	arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
 	1234abcd-12ab-34cd-56ef-1234567890ab \
 	"alias\ryans-key"
 
@@ -95,47 +74,35 @@ duvet_ci:
 		--source-pattern src/*.dfy
 
 compile_cs:
-	dafny \
+	dafny build \
 	src/Index.dfy \
-	/compile:0 \
-	-spillTargetCode:3 \
-	/compileTarget:cs \
-	/out:runtimes/AwsKmsArn
+	--target:cs \
+	--output:runtimes/AwsKmsArn
 compile_go:
-	dafny \
+	dafny build \
 	src/Index.dfy \
-	/compile:0 \
-	-spillTargetCode:3 \
-	/compileTarget:go \
-	/out:runtimes/AwsKmsArn
+	--target:go \
+	--output:runtimes/AwsKmsArn
 compile_js:
-	dafny \
+	dafny build \
 	src/Index.dfy \
-	/compile:0 \
-	-spillTargetCode:3 \
-	/compileTarget:js \
-	/out:runtimes/AwsKmsArn
+	--target:js \
+	--output:runtimes/AwsKmsArn
 compile_java:
-	dafny \
+	dafny build \
 	src/Index.dfy \
-	/compile:0 \
-	-spillTargetCode:3 \
-	/compileTarget:java \
-	/out:runtimes/AwsKmsArn
+	--target:java \
+	--output:runtimes/AwsKmsArn
 compile_py:
-	dafny \
+	dafny build \
 	src/Index.dfy \
-	/compile:0 \
-	-spillTargetCode:3 \
-	/compileTarget:py \
-	/out:runtimes/AwsKmsArn
+	--target:py \
+	--output:runtimes/AwsKmsArn
 compile_cpp:
-	dafny \
+	dafny build \
 	src/Index.dfy \
-	/compile:0 \
-	-spillTargetCode:3 \
-	/compileTarget:cpp \
-	/out:runtimes/AwsKmsArn
+	--target:cpp \
+	--output:runtimes/AwsKmsArn
 
 # Invoked as part of the containter set-up, so doesn't need to be part of "all"
 install_dependencies:
