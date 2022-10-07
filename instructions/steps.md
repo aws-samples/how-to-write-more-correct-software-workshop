@@ -791,7 +791,7 @@ we can read this as
 that the called string was split into 6 parts"
 
 Now, go back to the `duvet` report window (compliance_report.html)
-and click on text of this requirement
+and click on the text of this requirement
 (the first line with a red underline at the top of the page).
 You should get a popup.
 Click on the `IMPLICATION` tab,
