@@ -96,9 +96,6 @@ We have given you a specification in `aws-kms-key-arn.txt`.
 This has been lightly edited from the [AWS Encryption SDK](https://github.com/awslabs/aws-encryption-sdk-specification/blob/master/framework/aws-kms/aws-kms-key-arn.md)
 for this workshop. This is no made-up problem we're solving!
 
-Take a minute to read the specification
-and understand what we're asking you to implement.
-
 Currently `duvet` is optimized to handle RFC style (ITEF) files.
 We have converted the markdown specification into this format for you.
 Soon, `duvet` will support markdown directly.
@@ -117,7 +114,6 @@ cd exercises/start
 ````
 
 You can also right-click the `exercises/start` folder and click "Open in Integrated Terminal".
-
 
 Now let's extract the requirements and run a report.
 We have made nice `make` targets for you.
@@ -140,7 +136,7 @@ If you click on the `aws-kms-key-arn` link,
 you will see that we have a total of 20 requirements
 for our `aws-kms-key-arn` specification.
 
-Click on the specification and you can see details on these requirements.
+Click on the "aws-kms-key-arn" link and you can see details on these requirements.
 We will start on section `2.5` so go ahead
 and click on one of the `2.5` links in the left-most column
 and take a minute to look at this part of the specification
@@ -157,7 +153,7 @@ Assuming you are reading these steps on GitHub,
 there should be a handy hidden copy button
 in the top-right corner of each code snippet for your convenience and delight.
 Unless we say otherwise, each time we give you a snippet like this,
-go ahead and paste it into the correct place.
+go ahead and paste it under the imports.
 You shouldn't see any errors,
 again unless we say otherwise.
 If you run into problems please 
@@ -225,7 +221,8 @@ is a property.
 This means that if the variable `obj` is an `AwsArn`
 then `obj.service` is a `string`.
 
-`nameonly` forces callers to use named parameters.
+`nameonly` forces callers to use named parameters
+as opposed to positional parameters.
 This makes the call more verbose,
 but also makes it much more readable.
 
@@ -237,6 +234,8 @@ but I highly recommend it.
 
 Now we have some containers.
 Let's talk about the correct values for these containers.
+Replace the current definition of `ValidAwsArn?`
+with the following code.
 
 <!-- !test check ValidAwsArn? -->
 ```dafny
@@ -295,7 +294,7 @@ that returns something else and see :)
 ## Step 6
 
 Using what we have learned,
-let's add implementations to our remaining three `predicate`s .
+let's add implementations to our remaining three `predicate`s.
 
 <!-- !test check remaining correctness predicates -->
 ```dafny
@@ -460,6 +459,10 @@ a sequence of statements.
 Ultimately the result of the function
 is the expression following the last `;`.
 
+Replace the `ParseAwsKmsArn` function with this code.
+This code will give you errors,
+we will go over.
+
 ```dafny
 
   function ParseAwsKmsArn(identifier: string)
@@ -513,7 +516,7 @@ After the `Split` try adding
 ```dafny
     assert Split("no colon", ':') == ["no colon"];
 ```
-You should **not** see an error on this line,
+You should **not** see an error on this assert,
 which is Dafny telling us that this is indeed true!
 
 This means we can
@@ -548,7 +551,7 @@ before the above `assert`.
 ## Step 10
 
 Ok, so what do we do if there are not enough `:` in `identifier`?
-Dafny does not have a ability to `throw` an exception.
+Dafny does not have an ability to `throw` an exception.
 The return type in Dafny is a contract or postcondition.
 That means that with the current function signature,
 we MUST return an `AwsKmsArn` no matter what.
@@ -633,6 +636,7 @@ We could write:
 ```
 
 This is great!
+We still have an error, but we will deal with this next step.
 Dafny now believes us that `components[5]` will _always_ be valid.
 You can even ask Dafny `assert 7 < |components|;` and it will object.
 But pretty quickly we are going to introduce a pyramid of doom
@@ -747,6 +751,9 @@ Now that we have a valid implementation, let's review it for correctness.
 Our first requirement is
 'A valid AWS KMS ARN is a string with 5 ":" that MUST delimit the following 6 parts:'.
 
+Replace only the first part of `ParseAwsKmsArn`.
+We are adding the `ensures` part to the signature.
+
 <!-- !test check ParseAwsKmsArn Correctness -->
 ```dafny
 
@@ -754,7 +761,6 @@ Our first requirement is
     : (result: Result<AwsKmsArn, string>)
 
     ensures result.Success? ==> |Split(identifier, ':')| == 6
-  {
 
 ```
 
