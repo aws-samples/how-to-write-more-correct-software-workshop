@@ -1036,7 +1036,7 @@ make duvet_report
 
 You have completed section 2.5!
 Now we know that every requirement in that section is annotated
-and we know that our implementation follows it's Dafny specification.
+and we know that our implementation follows its Dafny specification.
 
 Before we move on,
 remember that we could put `duvet` into our CI build process.
