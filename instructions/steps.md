@@ -1044,7 +1044,7 @@ This would create a mechanism to ensure that every requirement is meet.
 It also is a way to track changes
 if new requirements are added the project.
 
-Why don't we execute it?!
+Why don't we execute our implementation?!
 
 In our makefile there are targets for each supported runtime.
 Feel free to play around with other values!
@@ -1053,14 +1053,10 @@ Feel free to play around with other values!
 make execute
 ```
 
-If you would like to investigate the source that Dafny produces
-this will output the source to a `runtimes` directory.
+If you want to see what is going on,
+take a look in `Index.dfy`.
 
-```bash
-make compile
-```
-
-## More Extra Credit
+## Extra Credit
 
 Here are a couple of bonus questions if you are hungry for more:
 
@@ -1076,7 +1072,7 @@ Here are a couple of bonus questions if you are hungry for more:
    Where should the relevant Duvet citations move to?
 
 1. Now that we have implemented parsing, 
-   try implementing the other direction in a `AwsKmsIdentifierToString`
+   try implementing the other direction in a `AwsKmsArnToString`
    function and write a lemma to prove that it is always
    the inverse of `ParseAwsKmsIdentifier`.
    You will find one possible solution [here](../exercises/complete/src/SoundnessVsCompletness.dfy).
@@ -1084,3 +1080,12 @@ Here are a couple of bonus questions if you are hungry for more:
 1. `Split` and `Join` are relatively simple functions.
     Try replacing the functions we gave you with your own. 
     If you really want to flex, get it to verify *before* writing your implementation.
+
+1. You might like to investigate the source that Dafny produces.
+    This will output the source to a `runtimes` directory.
+    There is a lot of Dafny boilerplate
+    but your code is in there.
+
+    ```bash
+    make compile
+    ```
