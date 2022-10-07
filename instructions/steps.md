@@ -513,7 +513,7 @@ After the `Split` try adding
 ```dafny
     assert Split("no colon", ':') == ["no colon"];
 ```
-You should not see an error on this line,
+You should **not** see an error on this line,
 which is Dafny telling us that this is indeed true!
 
 This means we can
@@ -1074,7 +1074,7 @@ Here are a couple of bonus questions if you are hungry for more:
 1. Now that we have implemented parsing, 
    try implementing the other direction in a `AwsKmsArnToString`
    function and write a lemma to prove that it is always
-   the inverse of `ParseAwsKmsIdentifier`.
+   the inverse of `ParseAwsKmsArn`.
    You will find one possible solution [here](../exercises/complete/src/SoundnessVsCompletness.dfy).
 
 1. `Split` and `Join` are relatively simple functions.

@@ -482,3 +482,23 @@ Success! The command no longer fails
 and the report is a happy sea of green.
 Congratulations on your formally-verified implementation!
 
+Again we can run our code!
+Before we ran `ParseAwsKmsArn` in our test.
+But now we have a more complete function `ParseAwsKmsIdentifier`.
+We can update `Index.dfy` to use this other function.
+
+```dafny
+
+      var output := AwsKmsArnParsing.ParseAwsKmsIdentifier(args[i]);
+
+```
+
+Now, as before 
+
+```bash
+make execute
+```
+
+In our makefile there are targets for each supported runtime.
+Feel free to play around with other values!
+You can also swap back and forth between the parsing functions.
