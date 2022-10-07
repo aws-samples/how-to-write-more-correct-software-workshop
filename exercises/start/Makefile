@@ -6,11 +6,14 @@ verify:
 
 execute: | execute_cs execute_go execute_java execute_js execute_py
 
+compile: | compile_cs compile_go compile_js compile_java compile_py
+
 execute_cs:
 	dafny \
 	src/Index.dfy \
 	/compile:3 \
 	/compileTarget:cs \
+	/out:runtimes/AwsKmsArn \
 	--args \
 	arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
 	arn:aws-cn:kms:us-west-2:658956600833:b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
@@ -21,6 +24,7 @@ execute_go:
 	src/Index.dfy \
 	/compile:3 \
 	/compileTarget:go \
+	/out:runtimes/AwsKmsArn \
 	--args \
 	arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
 	1234abcd-12ab-34cd-56ef-1234567890ab \
@@ -30,6 +34,7 @@ execute_js:
 	src/Index.dfy \
 	/compile:3 \
 	/compileTarget:js \
+	/out:runtimes/AwsKmsArn \
 	--args \
 	arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
 	1234abcd-12ab-34cd-56ef-1234567890ab \
@@ -39,6 +44,7 @@ execute_java:
 	src/Index.dfy \
 	/compile:3 \
 	/compileTarget:java \
+	/out:runtimes/AwsKmsArn \
 	--args \
 	arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
 	1234abcd-12ab-34cd-56ef-1234567890ab \
@@ -48,6 +54,7 @@ execute_py:
 	src/Index.dfy \
 	/compile:3 \
 	/compileTarget:py \
+	/out:runtimes/AwsKmsArn \
 	--args \
 	arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
 	1234abcd-12ab-34cd-56ef-1234567890ab \
@@ -57,6 +64,7 @@ execute_cpp:
 	src/Index.dfy \
 	/compile:3 \
 	/compileTarget:cpp \
+	/out:runtimes/AwsKmsArn \
 	--args \
 	--args arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
 	1234abcd-12ab-34cd-56ef-1234567890ab \
@@ -85,6 +93,49 @@ duvet_ci:
   	--require-tests true \
 		--no-cargo \
 		--source-pattern src/*.dfy
+
+compile_cs:
+	dafny \
+	src/Index.dfy \
+	/compile:0 \
+	-spillTargetCode:3 \
+	/compileTarget:cs \
+	/out:runtimes/AwsKmsArn
+compile_go:
+	dafny \
+	src/Index.dfy \
+	/compile:0 \
+	-spillTargetCode:3 \
+	/compileTarget:go \
+	/out:runtimes/AwsKmsArn
+compile_js:
+	dafny \
+	src/Index.dfy \
+	/compile:0 \
+	-spillTargetCode:3 \
+	/compileTarget:js \
+	/out:runtimes/AwsKmsArn
+compile_java:
+	dafny \
+	src/Index.dfy \
+	/compile:0 \
+	-spillTargetCode:3 \
+	/compileTarget:java \
+	/out:runtimes/AwsKmsArn
+compile_py:
+	dafny \
+	src/Index.dfy \
+	/compile:0 \
+	-spillTargetCode:3 \
+	/compileTarget:py \
+	/out:runtimes/AwsKmsArn
+compile_cpp:
+	dafny \
+	src/Index.dfy \
+	/compile:0 \
+	-spillTargetCode:3 \
+	/compileTarget:cpp \
+	/out:runtimes/AwsKmsArn
 
 # Invoked as part of the containter set-up, so doesn't need to be part of "all"
 install_dependencies:
