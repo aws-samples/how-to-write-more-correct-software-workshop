@@ -977,7 +977,7 @@ Once we add an implementation
 to this `function` that Dafny will accept
 we are done with this section!
 
-Finally, take a look at the "The resource id MUST be a non-empty string" requirement
+Finally, take a look at the requirement "The resource id MUST be a non-empty string"
 and see if you can work out why this is indeed enforced.
 
 ## Step 15
