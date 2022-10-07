@@ -461,7 +461,7 @@ is the expression following the last `;`.
 
 Replace the `ParseAwsKmsArn` function with this code.
 This code will give you errors,
-we will go over.
+which we will go over.
 
 ```dafny
 
