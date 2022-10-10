@@ -33,6 +33,11 @@ you will be prompted to authenticate through GitHub.
 If it doesn't work for whatever reason,
 alternatives are documented [here](./environment-alternatives.md).
 
+This workshop is not a race,
+and there is no test at the end.
+We will walk you through everything
+so take take time to read through everything.
+
 ## Step 1
 
 The `exercises/start` directory contains our initial state,
@@ -117,7 +122,7 @@ You can also right-click the `exercises/start` folder and click "Open in Integra
 
 Now let's extract the requirements and run a report.
 We have made nice `make` targets for you.
-Note, the report will fail.
+The report will fail.
 This is expected because we have not implemented anything.
 
 ```bash
@@ -175,7 +180,7 @@ A `datatype` is an immutable container.
 They are used to organize data.
 We will add properties to them to hold our strings.
 
-To the left of the `=` is the name of the `datatype`.
+To the left of the `=` is the name of the `datatype`, which can be used as a type.
 To the right of the `=` are the `datatype`'s constructors.
 In this case, we have only one.
 Later we will have more.
@@ -228,7 +233,7 @@ but also makes it much more readable.
 
 You are not required to use it
 in your code,
-but I highly recommend it.
+but we highly recommend it.
 
 ## Step 5
 
@@ -274,9 +279,7 @@ but leading tokens like this grow on you.
 
 `string`s in Dafny are a sequence of characters.
 Surrounding a sequence with `|` will return the length (cardinality) of a sequence.
-So `0 < arn.partition.length`
-is probably how you would expect that to be written
-in a language you are more familiar with.
+So |arn.partition| is simply the length of the string.
 
 We are calling `ValidAwsResource?`
 even though it does not have an implementation.
@@ -286,6 +289,7 @@ But all Dafny needs for `ValidAwsArn?` to be valid
 is to be able to prove that it will always return a `bool`.
 Feel free to change `ValidAwsResource?` to a function
 that returns something else and see :)
+(remember to change it back before continuing)
 
 ```dafny
     function ValidAwsResource?(resource: AwsResource): string
@@ -295,6 +299,7 @@ that returns something else and see :)
 
 Using what we have learned,
 let's add implementations to our remaining three `predicate`s.
+Replace the remaining three `predicate`s with the following code.
 
 <!-- !test check remaining correctness predicates -->
 ```dafny
@@ -409,8 +414,8 @@ let's create a subset type for `AwsKmsResource`
 
 ## Step 8
 
-Ok! Let's get started
-with these naive signatures.
+Ok! Let's get started.
+Copy over these naive signatures.
 
 ```dafny
 
@@ -445,7 +450,8 @@ the other is often preferred.
 
 ## Step 9
 
-Here is a naive first implementation.
+Here is a naive implementation
+to copy over.
 Note that it is `':'` not `":"`:
 the first is a character, the second is a string.
 
@@ -574,7 +580,8 @@ One for the `Success` and the other for `Failure`[^monad]
     If you have no idea what a monad is,
     then congratulations you are one of the lucky 10,000!
 
-Update our function like so:
+Update the existing function.
+The difference is the return value `: (result: Result<AwsKmsArn, string>)`.
 ```dafny
 
   function ParseAwsKmsArn(identifier: string)
@@ -606,7 +613,9 @@ Looking at our specification
 we see "A string with 5 ":" that delimit following 6 parts:".
 This means that we need `|components| == 5`.
 
-We could write:
+Copy over the following.
+The difference is everything after  `var components := Split(identifier, ':');`
+is wrapped in an `if/then` expression.
 ```dafny
 
   function ParseAwsKmsArn(identifier: string)
@@ -649,8 +658,8 @@ In addition to giving us the `Result` type,
 it gives us a `Need` function that will
 nicely abstract the above code for us.
 
-Instead we will use
-
+Copy this code where the `if/then` expression
+has been flattened by the call to `:- Need`.
 ```dafny
 
   function ParseAwsKmsArn(identifier: string)
@@ -698,11 +707,11 @@ and it uses positive logic.
 This way you can express
 what you `Need` to be true to continue!
 
-Now, we _could_ annotate this `Need` line with duvet.
-But duvet wants both the implementation
-*and* evidence that it is correct.
-Dafny gives us an even more powerful tool.
-Stay tuned.
+We did all this work because of our specification.
+At the beginning of the talk we discussed annotating code with Duvet.
+This line would be a great candidate in most languages.
+But Dafny gives us more powerful tools
+so let's hold off on adding the annotation here.
 
 ## Step 12
 
@@ -742,7 +751,7 @@ is all we need.
 
 ```
 
-Horray! Now Dafny is at least satisfied that the implementation
+Hooray! Now Dafny is at least satisfied that the implementation
 of this function matches the signature and will not crash at runtime.
 
 ## Step 13
@@ -978,7 +987,16 @@ to this `function` that Dafny will accept
 we are done with this section!
 
 Finally, take a look at the requirement "The resource id MUST be a non-empty string"
-and see if you can work out why this is indeed enforced.
+and see if you can work out why this is indeed enforced.[^non-empty]
+
+[^non-empty]: We used `<=` as a way to express "starts with".
+    In this case we are using `<`.
+    This means that the `arnResource` string can not be equal
+    but MUST have additional characters after the `/`.
+    Since we have proved
+    `arnResource == result.value.resourceType + "/" + result.value.value`
+    if there are characters after the `/` then the resource id
+    MUST be non-empty.
 
 ## Step 15
 
