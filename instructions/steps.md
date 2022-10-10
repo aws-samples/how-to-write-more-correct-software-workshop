@@ -164,10 +164,22 @@ again unless we say otherwise.
 If you run into problems please 
 [cut us an issue](https://github.com/aws-samples/how-to-write-more-correct-software-workshop/issues/new)!
 
+<!-- !test check container datatype -->
 ```dafny
 
-  datatype AwsArn = AwsArn
-  datatype AwsResource = AwsResource
+  datatype AwsArn = AwsArn(
+    nameonly arnLiteral: string,
+    nameonly partition: string,
+    nameonly service: string,
+    nameonly region: string,
+    nameonly account: string,
+    nameonly resource: AwsResource
+  )
+
+  datatype AwsResource = AwsResource(
+    nameonly resourceType: string,
+    nameonly value: string
+  )
 
   predicate ValidAwsArn?(arn:AwsArn)
   predicate ValidAwsResource?(resource:AwsResource)
@@ -185,41 +197,6 @@ To the right of the `=` are the `datatype`'s constructors.
 In this case, we have only one.
 Later we will have more.
 
-What is a `predicate` and what's the deal with that `?` at the end?
-A `predicate` is a function that returns a `boolean`.
-It is syntactic sugar for `function ValidAwsArn?(arn:AwsArn) : bool`.
-
-Generally such functions ask a question.
-For example "Is this AwsArn `arn` a valid AwsArn?".
-Since `?` is a perfectly good character for a name in Dafny,
-it is often added to a `predicate`.
-This also nicely binds the intention `predicate` with the `datatype`.
-
-Dafny is perfectly happy with constructs that have no body.
-We will use this later.
-
-## Step 4
-
-Let's add some properties to our `datatype`s.
-Replace the two existing `datatype`s with this.
-
-<!-- !test check container datatypes -->
-```dafny
-  datatype AwsArn = AwsArn(
-    nameonly arnLiteral: string,
-    nameonly partition: string,
-    nameonly service: string,
-    nameonly region: string,
-    nameonly account: string,
-    nameonly resource: AwsResource
-  )
-
-  datatype AwsResource = AwsResource(
-    nameonly resourceType: string,
-    nameonly value: string
-  )
-```
-
 Much like other languages,
 every argument given to a `datatype` constructor
 is a property.
@@ -235,7 +212,20 @@ You are not required to use it
 in your code,
 but we highly recommend it.
 
-## Step 5
+What is a `predicate` and what's the deal with that `?` at the end?
+A `predicate` is a function that returns a `boolean`.
+It is syntactic sugar for `function ValidAwsArn?(arn:AwsArn) : bool`.
+
+Generally such functions ask a question.
+For example "Is this AwsArn `arn` a valid AwsArn?".
+Since `?` is a perfectly good character for a name in Dafny,
+it is often added to a `predicate`.
+This also nicely binds the intention `predicate` with the `datatype`.
+
+Dafny is perfectly happy with constructs that have no body.
+We will use this later.
+
+## Step 4
 
 Now we have some containers.
 Let's talk about the correct values for these containers.
@@ -253,6 +243,27 @@ with the following code.
     && 0 < |arn.region|
     && 0 < |arn.account|
     && ValidAwsResource?(arn.resource)
+  }
+
+  predicate ValidAwsResource?(resource:AwsResource)
+  {
+    && 0 < |resource.value|
+  }
+
+  predicate AwsKmsArn?(arn:AwsArn)
+  {
+    && ValidAwsArn?(arn)
+    && arn.service == "kms"
+    && AwsKmsResource?(arn.resource)
+  }
+
+  predicate AwsKmsResource?(resource:AwsResource)
+  {
+    && ValidAwsResource?(resource)
+    && (
+      || resource.resourceType == "key"
+      || resource.resourceType == "alias"
+      )
   }
 
 ```
@@ -281,61 +292,10 @@ but leading tokens like this grow on you.
 Surrounding a sequence with `|` will return the length (cardinality) of a sequence.
 So |arn.partition| is simply the length of the string.
 
-We are calling `ValidAwsResource?`
-even though it does not have an implementation.
-If you tried to compile this,
-Dafny would complain.
-But all Dafny needs for `ValidAwsArn?` to be valid
-is to be able to prove that it will always return a `bool`.
-Feel free to change `ValidAwsResource?` to a function
-that returns something else and see :)
-(remember to change it back before continuing)
-
-```dafny
-    function ValidAwsResource?(resource: AwsResource): string
-```
-
-## Step 6
-
-Using what we have learned,
-let's add implementations to our remaining three `predicate`s.
-Replace the remaining three `predicate`s with the following code.
-
-<!-- !test check remaining correctness predicates -->
-```dafny
-
-  predicate ValidAwsResource?(resource:AwsResource)
-  {
-    && 0 < |resource.value|
-  }
-
-  predicate AwsKmsArn?(arn:AwsArn)
-  {
-    && ValidAwsArn?(arn)
-    && arn.service == "kms"
-    && AwsKmsResource?(arn.resource)
-  }
-
-  predicate AwsKmsResource?(resource:AwsResource)
-  {
-    && ValidAwsResource?(resource)
-    && (
-      || resource.resourceType == "key"
-      || resource.resourceType == "alias"
-      )
-  }
-
-```
-
-Just as `&&` is the logical "and" operator,
-`||` is the logical "or".
-So the resourceType for an `AwsKmsResource`
-MUST be either "key" or "alias".
-
 Go back and take a look at our specification.
 Does this seem to capture most of what the specification says makes a valid AWS KMS ARN?
 
-## Step 7
+## Step 5
 
 Many languages have types similar to Dafny's `datatype`,
 albeit not always immutable.
@@ -412,7 +372,7 @@ let's create a subset type for `AwsKmsResource`
 
 ```
 
-## Step 8
+## Step 6
 
 Ok! Let's get started.
 Copy over these naive signatures.
@@ -448,7 +408,7 @@ We could have `: AwsKmsResource`.
 But for reasons beyond the scope of this workshop
 the other is often preferred.
 
-## Step 9
+## Step 7
 
 Here is a naive implementation
 to copy over.
@@ -466,8 +426,7 @@ Ultimately the result of the function
 is the expression following the last `;`.
 
 Replace the `ParseAwsKmsArn` function with this code.
-This code will give you errors,
-which we will go over.
+This code will give you errors, which we will go over.
 
 ```dafny
 
@@ -554,7 +513,7 @@ before the above `assert`.
 </p>
 </details>
 
-## Step 10
+## Step 8
 
 Ok, so what do we do if there are not enough `:` in `identifier`?
 Dafny does not have the ability to `throw` an exception.
@@ -651,7 +610,7 @@ You can even ask Dafny `assert 7 < |components|;` and it will object.
 But pretty quickly we are going to introduce a pyramid of doom
 as we continually indent for more and more each such condition.
 
-## Step 11
+## Step 9
 
 But `Wrappers` has us covered.
 In addition to giving us the `Result` type,
@@ -713,7 +672,7 @@ This line would be a great candidate in most languages.
 But Dafny gives us more powerful tools
 so let's hold off on adding the annotation here.
 
-## Step 12
+## Step 10
 
 Now let's deal with the remaining error,
 `value does not satisfy the subset constraints of 'AwsKmsArn'`.
@@ -754,7 +713,7 @@ is all we need.
 Hooray! Now Dafny is at least satisfied that the implementation
 of this function matches the signature and will not crash at runtime.
 
-## Step 13
+## Step 11
 
 Now that we have a valid implementation, let's review it for correctness.
 Our first requirement is
@@ -842,7 +801,7 @@ make duvet_report
 and switch back to the report window, which should automatically refresh.
 This requirement is now green!
 
-## Step 14
+## Step 12
 
 Looking at our specification
 we can fill in several of our requirements.
@@ -906,8 +865,16 @@ The postcondition
 `ensures result.Success? ==> 0 < |Split(identifier, ':')[5]|`
 may not hold.
 
-Hmm, obviously we need to update `ParseAwsKmsResource`
-to return a `Result`.
+But this is an amazing moment.
+Dafny was unconcerned that `ParseAwsKmsResource`
+did not have a body (implementation).
+When we added additional things for Dafny to prove
+it recognized a potential edge case.
+Since `components[5]` is given to `ParseAwsKmsResource`
+we can't say anything about that part of the string.
+
+Hum, `ParseAwsKmsResource` needs to be able to fail!
+So let's update it to return a `Result`.
 
 <!-- !test check ParseAwsKmsResource stub -->
 ```dafny
@@ -929,6 +896,8 @@ since `ParseAwsKmsResource` now returns a `Result`.
 Dafny is still complaining.
 Let's think about this.
 `ParseAwsKmsResource` does not have any `ensures` on it.
+Dafny know now that it is possible for `ParseAwsKmsResource` to succeed or fail,
+but not under what conditions.
 So Dafny is unable to make any connection
 between the `AwsKmsResource` and the input `string`.
 So let's fix that.
@@ -967,14 +936,17 @@ Success!!
 Let's go over some cool things about this moment.
 
 First, we have added constraints to a method *before* implementing it.
-We talked before about how Dafny
-was ok without having a body.
-Now we show that Dafny will honor
-requirements on these stubs.
-Since Dafny will also force us
-to `ensure` these requirements in our implementation
-this kind of specification-driven development
-is a powerful tool in our toolbox.
+If you tried to compile this, Dafny would complain
+since there are no steps to execute.
+But Dafny has proved that *any* steps
+that result in these postconditions could work.
+When we go to implement `ParseAwsKmsResource`
+Dafny will now constrain us.
+Dafny will also force us
+to `ensure` these requirements in our implementation.
+This makes Dafny a powerful prototyping language.
+Specification-driven development
+is a powerful tool in our toolbox. 
 
 Second, if we run
 ```bash
@@ -998,7 +970,7 @@ and see if you can work out why this is indeed enforced.[^non-empty]
     if there are characters after the `/` then the resource id
     MUST be non-empty.
 
-## Step 15
+## Step 13
 
 Now we can add an implementation to `ParseAwsKmsResource`.
 
@@ -1049,7 +1021,7 @@ This is a slice notation.
 This will return a new sequence value identical to the original, but dropping the first element.
 If you want more details, see [here](https://dafny.org/dafny/DafnyRef/DafnyRef#sec-other-sequence-expressions).
 
-## Step 16
+## Step 14
 
 Let's run Duvet to see where we are.
 It will fail because we have not completed all sections.
