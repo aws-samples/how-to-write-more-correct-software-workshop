@@ -97,7 +97,7 @@ see [Controlling language features
 
 Since we are dealing with correct software,
 we need a definition of correctness!
-We have given you a specification in `aws-kms-key-arn.txt`.
+We have given you a specification.
 This has been lightly edited from the [AWS Encryption SDK](https://github.com/awslabs/aws-encryption-sdk-specification/blob/master/framework/aws-kms/aws-kms-key-arn.md)
 for this workshop. This is no made-up problem we're solving!
 
@@ -122,7 +122,7 @@ You can also right-click the `exercises/start` folder and click "Open in Integra
 
 Now let's extract the requirements and run a report.
 We have made nice `make` targets for you.
-The report will fail.
+The `make duvet_report` will fail.
 This is expected because we have not implemented anything.
 
 ```bash
@@ -137,9 +137,11 @@ There will now be a `compliance_report.html` report in the `start` folder.
 Right-click it and select "Open with Live Server",
 which should open the page in your browser
 (in a separate tab if you are using the web version of VS Code).
+If you don't see a new tab, check to see if you have blocked pop-ups.
 If you click on the `aws-kms-key-arn` link,
 you will see that we have a total of 20 requirements
 for our `aws-kms-key-arn` specification.
+This report came from `aws-kms-key-arn.txt`.
 
 Click on the "aws-kms-key-arn" link and you can see details on these requirements.
 We will start on section `2.5` so go ahead
@@ -229,7 +231,7 @@ We will use this later.
 
 Now we have some containers.
 Let's talk about the correct values for these containers.
-Replace the current definition of `ValidAwsArn?`
+Replace the current definitions of the bodiless `predicate`s
 with the following code.
 
 <!-- !test check ValidAwsArn? -->
@@ -270,7 +272,7 @@ with the following code.
 
 We are evaluating the `AwsArn` container
 to see if it is correct.
-We can read this `predicate` as:
+We can read `ValidAwsArn?` as:
 The arnLiteral MUST be the string "arn";
 the partition, service, region, and account
 MUST NOT be empty strings;
@@ -292,7 +294,7 @@ but leading tokens like this grow on you.
 Surrounding a sequence with `|` will return the length (cardinality) of a sequence.
 So |arn.partition| is simply the length of the string.
 
-Go back and take a look at our specification.
+Go back and take a look at our report.
 Does this seem to capture most of what the specification says makes a valid AWS KMS ARN?
 
 ## Step 5
@@ -336,14 +338,7 @@ we need a symbol of the base type to use when defining these constraints.
    to `AwsKmsArn?`, it MUST return `true`.
    The `|` can be read as "such that".
    This type can be read
-   "An `AwsKmsArn` is an `AwsArn` `arn` such that `AwsKmsArn?(arn)` is true"
-
-   Instead of a `predicate`
-   Dafny will let us use any expression.
-   So we could have inlined `AwsKmsArn?`.
-   But it is simpler to prove
-   that a given base type satisfies some constraints
-   when they are wrapped up in a single `predicate`.
+   "An `AwsKmsArn` is an `AwsArn` `arn` such that `AwsKmsArn?(arn)` is true".
 
 1. `witness`:
    In Dafny, some contexts only allow you to use a type
@@ -462,7 +457,7 @@ That is, that there are at least 5 `:` in `identifier`.
 This makes sense to us.
 We know nothing about `identifier`.
 
-What if anything do we know?
+What do we know?
 How can we ask Dafny about such things?
 `assert` is how Dafny will tell you what it believes to be true.
 Most languages have a way for you to do "console log debugging"
@@ -604,7 +599,9 @@ is wrapped in an `if/then` expression.
 ```
 
 This is great!
-We still have an error, but we will deal with this next step.
+We still have the error
+`value does not satisfy the subset constraints of 'AwsKmsArn'`,
+but we will deal with this next step.
 Dafny now believes us that `components[5]` will _always_ be valid.
 You can even ask Dafny `assert 7 < |components|;` and it will object.
 But pretty quickly we are going to introduce a pyramid of doom
@@ -619,6 +616,9 @@ nicely abstract the above code for us.
 
 Copy this code where the `if/then` expression
 has been flattened by the call to `:- Need`.
+We will still have the error
+`value does not satisfy the subset constraints of 'AwsKmsArn'`
+we will deal with that in the next step.
 ```dafny
 
   function ParseAwsKmsArn(identifier: string)
@@ -793,7 +793,9 @@ If you used `duvet` in a more traditional language,
 we would have annotated the `Need` call
 with a test and annotated that test.
 
-Run 
+Our report will still error,
+because we are not done,
+but let's run it and see some green!
 ```bash
 make duvet_report
 ```
@@ -806,6 +808,8 @@ This requirement is now green!
 Looking at our specification
 we can fill in several of our requirements.
 Most of this syntax we have already gone over.
+Replace the first part of `ParseAwsKmsArn`.
+This block contains additional `ensures` clauses.
 
 <!-- !test check ParseAwsKmsArn all requirement -->
 ```dafny
@@ -865,15 +869,17 @@ The postcondition
 `ensures result.Success? ==> 0 < |Split(identifier, ':')[5]|`
 may not hold.
 
-But this is an amazing moment.
+This is an amazing moment.
 Dafny was unconcerned that `ParseAwsKmsResource`
 did not have a body (implementation).
 When we added additional things for Dafny to prove
 it recognized a potential edge case.
 Since `components[5]` is given to `ParseAwsKmsResource`
-we can't say anything about that part of the string.
+Dafny can't say anything about that part of the string.
+Let's give Dafny more details about `ParseAwsKmsResource`.
 
 Hum, `ParseAwsKmsResource` needs to be able to fail!
+
 So let's update it to return a `Result`.
 
 <!-- !test check ParseAwsKmsResource stub -->
@@ -886,6 +892,8 @@ So let's update it to return a `Result`.
 
 Whoops, now we also have to update our call in `ParseAwsKmsArn`,
 since `ParseAwsKmsResource` now returns a `Result`.
+The `:-` will automaticly unwrap the `ParseAwsKmsResource`
+from the returned `Result` for us.
 
 ```dafny
 
@@ -992,10 +1000,16 @@ Now we can add an implementation to `ParseAwsKmsResource`.
     //= aws-kms-key-arn.txt#2.5
     //= type=implication
     //# The resource type MUST be either "alias" or "key"
-    //# The resource id MUST be a non-empty string
     ensures result.Success?
     ==>
       ("key/" < arnResource || "alias/" < arnResource)
+
+    //= aws-kms-key-arn.txt#2.5
+    //= type=implication
+    //# The resource id MUST be a non-empty string
+    ensures result.Success?
+    ==> result.value.resourceType + "/" < arnResource
+
   {
     var info := Split(arnResource, '/');
 
