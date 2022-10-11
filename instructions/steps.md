@@ -904,7 +904,7 @@ from the returned `Result` for us.
 Dafny is still complaining.
 Let's think about this.
 `ParseAwsKmsResource` does not have any `ensures` on it.
-Dafny know now that it is possible for `ParseAwsKmsResource` to succeed or fail,
+Dafny knows now that it is possible for `ParseAwsKmsResource` to succeed or fail,
 but not under what conditions.
 So Dafny is unable to make any connection
 between the `AwsKmsResource` and the input `string`.
