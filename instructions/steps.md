@@ -945,9 +945,9 @@ Let's go over some cool things about this moment.
 
 First, we have added constraints to a method *before* implementing it.
 If you tried to compile this, Dafny would complain
-since there are no steps to execute.
-But Dafny has proved that *any* steps
-that result in these postconditions could work.
+since there is no implementation to execute.
+But Dafny has proved that *any* implementation
+that results in these postconditions could work.
 When we go to implement `ParseAwsKmsResource`
 Dafny will now constrain us.
 Dafny will also force us
