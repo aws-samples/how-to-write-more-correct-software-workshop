@@ -1,4 +1,4 @@
-target = "aws-kms-key-arn.txt#2.5"
+target = "aws-kms-key-arn.txt#section-2.5"
 
 # 2.5.  A valid AWS KMS ARN
 #

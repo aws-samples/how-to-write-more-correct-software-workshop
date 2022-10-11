@@ -13,13 +13,16 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - run: make steps_are_complete
-    - run: make specifications_are_the_same
-    - run: make makefiles_are_the_same
+    - name: Install Duvet
+      run: cargo +stable install duvet
 
-    - name: Install txm for running test
-      run: npm install txm
-    - run: make txm_steps
+    - name: Install Dafny
+      uses: dafny-lang/setup-dafny-action@v1.4.0
+      with:
+        dafny-version: "3.9.0"
+    
+    - run: make install_dependencies
+    - run: make all
   
   container:
     runs-on: ubuntu-latest
@@ -30,5 +33,4 @@ jobs:
       uses: devcontainers/ci@v0.2
       with:
         runCmd: |
-          make verify_complete
-          make assert_unchanged
+          make all
