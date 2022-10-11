@@ -18,6 +18,11 @@ jobs:
     
     - name: Install Duvet
       run: cargo +stable install duvet
+
+    - name: Install Dafny
+      uses: dafny-lang/setup-dafny-action@v1.4.0
+      with:
+        dafny-version: "3.9.0"
     
     - run: make install_dependencies
     - run: make all
