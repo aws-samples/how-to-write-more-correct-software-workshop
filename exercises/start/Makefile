@@ -1,3 +1,6 @@
+
+ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+
 .PHONY: all
 all: duvet_extract duvet_ci verify execute 
 
@@ -18,7 +21,7 @@ execute_cs: compile_cs
 execute_go: compile_go
 	env \
 	GO111MODULE=auto \
-	GOPATH=$(PWD)/runtimes/AwsKmsArn-go \
+	GOPATH=$(ROOT_DIR)/runtimes/AwsKmsArn-go \
 	go run \
 	runtimes/AwsKmsArn-go/src/AwsKmsArn.go \
 	arn:aws-cn:kms:us-west-2:658956600833:key/b3537ef1-d8dc-4780-9f5a-55776cbb2f7f \
@@ -73,36 +76,39 @@ duvet_ci:
 		--no-cargo \
 		--source-pattern src/*.dfy
 
-compile_cs:
+compile_cs: make_runtimes_dir
 	dafny build \
 	src/Index.dfy \
 	--target:cs \
 	--output:runtimes/AwsKmsArn
-compile_go:
+compile_go: make_runtimes_dir
 	dafny build \
 	src/Index.dfy \
 	--target:go \
 	--output:runtimes/AwsKmsArn
-compile_js:
+compile_js: make_runtimes_dir
 	dafny build \
 	src/Index.dfy \
 	--target:js \
 	--output:runtimes/AwsKmsArn
-compile_java:
+compile_java: make_runtimes_dir
 	dafny build \
 	src/Index.dfy \
 	--target:java \
 	--output:runtimes/AwsKmsArn
-compile_py:
+compile_py: make_runtimes_dir
 	dafny build \
 	src/Index.dfy \
 	--target:py \
 	--output:runtimes/AwsKmsArn
-compile_cpp:
+compile_cpp: make_runtimes_dir
 	dafny build \
 	src/Index.dfy \
 	--target:cpp \
 	--output:runtimes/AwsKmsArn
+
+make_runtimes_dir:
+	mkdir -p runtimes
 
 # Invoked as part of the containter set-up, so doesn't need to be part of "all"
 install_dependencies:
