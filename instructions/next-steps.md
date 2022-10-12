@@ -18,7 +18,7 @@ example specification in the verification-aware programming language Dafny.
 
 These steps assume that you have already completed everything in [here](steps.md).
 
-## Step 16
+## Step 15
 
 Again looking at our specification
 we need to handle an AWS KMS identifier.
@@ -65,7 +65,7 @@ either a `AwsKmsArnIdentifier(a)` or a `AwsKmsRawResourceIdentifier(r)`.
 This is how you define a "Discriminated Union" in Dafny.
 That's just a fancy way of saying "An A or a B" :)
 
-## Step 17
+## Step 16
 
 Let's do `ParseAwsKmsIdentifier` first.
 How can we distinguish an ARN
@@ -88,7 +88,7 @@ Let's go with "It starts with arn:".
 
 ```
 
-## Step 18
+## Step 17
 
 Lets do `ParseAwsKmsRawResource`.
 First we will do a quick naive implementation.
@@ -162,7 +162,7 @@ Let's just add the condition to our existing `Need`:
 
 ```
 
-## Step 19
+## Step 18
 We are almost done with our implementation!!
 
 First `MultiRegionAwsKmsArn?`
@@ -265,7 +265,7 @@ then we would be required to list them all.
 The arguments bind variables that are in scope
 in that `case` branch.
 
-## Step 20
+## Step 19
 
 Wait!
 Run `make duvet_report` and notice the command still fails.
@@ -469,7 +469,7 @@ Putting that all together we get.
 
 ```
 
-## Step 21
+## Step 20
 
 Let's run Duvet one last time:
 
