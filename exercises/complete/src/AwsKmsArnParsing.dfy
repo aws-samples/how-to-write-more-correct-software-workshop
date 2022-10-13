@@ -53,13 +53,9 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
       )
   }
 
-  type AwsKmsArn = arn: AwsArn
-  | AwsKmsArn?(arn)
-  witness *
+  type AwsKmsArn = arn: AwsArn | AwsKmsArn?(arn) witness *
 
-  type AwsKmsResource = resource: AwsResource
-  | AwsKmsResource?(resource)
-  witness *
+  type AwsKmsResource = resource: AwsResource | AwsKmsResource?(resource) witness *
 
   function ParseAwsKmsArn(identifier: string)
     : (result: Result<AwsKmsArn, string>)

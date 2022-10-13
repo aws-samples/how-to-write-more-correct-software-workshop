@@ -25,12 +25,14 @@ First let's spin up a development environment with all the dependencies we'll ne
 Click the button below to open this repository in a GitPod workspace. 
 You'll want to open it in a new tab 
 so you can come back to the next step once it finishes starting up.
+If you are not already signed in as a GitHub user,
+you will be prompted to authenticate through GitHub.
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/aws-samples/how-to-write-more-correct-software-workshop)
 
-If you are not already signed in as a GitHub user,
-you will be prompted to authenticate through GitHub.
-If it doesn't work for whatever reason,
+If you are prompted to choose your IDE, select "Visual Studio Code for the Web".
+
+If GitPod doesn't work for whatever reason,
 alternatives are documented [here](./environment-alternatives.md).
 
 This workshop is not a race,
@@ -66,32 +68,9 @@ module {:options "-functionSyntax:4"} AwsKmsArnParsing {
 You will also see the Dafny extension automatically download Dafny for you,
 if this is the first time you've opened a Dafny source file.
 
-Let's go over a few Dafny basics:
+There's no need to understand the details of what's already in the file,
+but if you are keen you can read more [here](#notes-on-the-initial-state).
 
-1. `include` is how Dafny includes other files.
-The file `include.dfy` is a helper file we added for you.
-
-1. `module` is how Dafny organizes code.
-This `module` is called `AwsKmsArnParsing`.
-Everything in `{}` is the contents of the `module`.
-Dafny does have ways to control what gets exported,
-but for now, lets just say everything is exported.
-
-1. `import` takes a named module
-and brings it into scope.
-
-1. `opened` takes all the exported names
-in the imported module and puts them in the current namespace.
-This is where we will get symbols that don't exist in this file,
-for example `Split` and `Join`.
-
-1. `{:options "-functionSyntax:4"}`
-allows us to use the simplest syntax for function declarations,
-which will be the default in Dafny 4 once it is released.
-You can safely ignore this,
-but if you are *really* interested:
-see [Controlling language features
-](https://dafny.org/dafny/DafnyRef/DafnyRef#sec-controlling-language) for more details.
 
 ## Step 2
 
@@ -108,7 +87,7 @@ Soon, `duvet` will support markdown directly.
 `duvet` can read text documents
 and extract MUST/SHOULD ([RFC-2119](https://datatracker.ietf.org/doc/html/rfc2119) normative language) statements as requirements.
 `duvet` will keep track of these requirements for us.
-It will help us account every requirement,
+It will help us account for every requirement,
 and ask us to provide some evidence that our implementation of the requirements are correct.
 You will see how this works in more detail later.
 
@@ -216,13 +195,12 @@ but we highly recommend it.
 
 What is a `predicate` and what's the deal with that `?` at the end?
 A `predicate` is a function that returns a `boolean`.
-It is syntactic sugar for `function ValidAwsArn?(arn:AwsArn) : bool`.
+It is syntactic sugar for `function ValidAwsArn?(arn: AwsArn): bool`.
 
 Generally such functions ask a question.
 For example "Is this AwsArn `arn` a valid AwsArn?".
 Since `?` is a perfectly good character for a name in Dafny,
 it is often added to a `predicate`.
-This also nicely binds the intention `predicate` with the `datatype`.
 
 Dafny is perfectly happy with constructs that have no body.
 We will use this later.
@@ -270,7 +248,7 @@ with the following code.
 
 ```
 
-We are evaluating the `AwsArn` container
+We are checking the `AwsArn` container
 to see if it is correct.
 We can read `ValidAwsArn?` as:
 The arnLiteral MUST be the string "arn";
@@ -279,20 +257,19 @@ MUST NOT be empty strings;
 and finally the resource MUST be a correct AwsResource.
 
 A `predicate` is a kind of function.
-Functions in Dafny are just syntactic sugar for expressions.
 You will note that there is no `;`.
 The return value for any `predicate` or `function`
 is just the value of the function's body.
 
 The leading token, `&&`, is just sugar.
 Leading boolean operators like this
-lets you reorder things nicely.
+lets you reorder things easily.
 It may look strange at first,
 but leading tokens like this grow on you.
 
-`string`s in Dafny are a sequence of characters.
+`string`s in Dafny are sequences of characters.
 Surrounding a sequence with `|` will return the length (cardinality) of a sequence.
-So |arn.partition| is simply the length of the string.
+So `|arn.partition|` is simply the length of the string.
 
 Go back and take a look at our report.
 Does this seem to capture most of what the specification says makes a valid AWS KMS ARN?
@@ -304,26 +281,24 @@ albeit not always immutable.
 These types already contribute some progress towards correctness.
 After all, you can't put a number into a string.
 
-A subset type in Dafny lets us combine the correctness we defined
-in our `predicate`s with a base `datatype`.
+A subset type in Dafny lets us encapsulate the correctness we defined
+in a `predicate` into a new, more precise type.
 We can then reason about this new type statically.
 If most types represent the basic shape of your data,
-then Dafny's subset type is a painting
+then Dafny's subset types are paintings
 full of light, shadow, and color.
 
 As we will see,
 to return a subset type we will need to prove
 that the `datatype` has been constructed correctly.
-But after that the correctness in baked into the subset type.
+But after that the correctness is baked into the subset type.
 
 Let's create one!
 
 <!-- !test check AwsKmsArn -->
 ```dafny
 
-  type AwsKmsArn = arn: AwsArn
-  | AwsKmsArn?(arn)
-  witness *
+  type AwsKmsArn = arn: AwsArn | AwsKmsArn?(arn) witness *
 
 ```
 
@@ -356,14 +331,12 @@ we need a symbol of the base type to use when defining these constraints.
    in the reference manual for more details.
 
 In the meantime,
-let's create a subset type for `AwsKmsResource`
+let's create a subset type for `AwsKmsResource` as well:
 
 <!-- !test check AwsKmsResource -->
 ```dafny
 
-  type AwsKmsResource = resource: AwsResource
-  | AwsKmsResource?(resource)
-  witness *
+  type AwsKmsResource = resource: AwsResource | AwsKmsResource?(resource) witness *
 
 ```
 
@@ -384,9 +357,8 @@ Copy over these naive signatures.
 `function` is mostly what you expect.
 However, `function`s in Dafny are more restrictive
 than you are probably used to.
-They are syntactic sugar for expressions.
 They are more like mathematical functions: 100% deterministic.
-The can't mutate, use loops, or create objects on the heap.
+The can't mutate, use loops, or create objects.
 These restrictions are important
 because `function`s are the building blocks for proof.
 They provide a good introduction to Dafny
@@ -399,9 +371,6 @@ By putting it in `()` we can give our return value a name
 This lets us reference it in a postcondition or `ensures` clause.
 Postconditions are things that MUST be true
 about the result of the function.
-We could have `: AwsKmsResource`.
-But for reasons beyond the scope of this workshop
-the other is often preferred.
 
 ## Step 7
 
@@ -459,7 +428,9 @@ We know nothing about `identifier`.
 
 What do we know?
 How can we ask Dafny about such things?
-`assert` is how Dafny will tell you what it believes to be true.
+`assert` statements are how we declare what we believe is true
+at a particular point in the code.
+But Dafny will also tell you whether it agrees.
 Most languages have a way for you to do "console log debugging"
 where you make changes, run the code, and check the output.
 `assert` is a way to do something similar in Dafny.
@@ -468,7 +439,10 @@ Dafny will check them all before you ever execute your code.
 An `assert` is an error unless Dafny can deduce
 that it is impossible for the expression to be false.
 
-Generally `Split` functions will return a single element
+The `Split` function splits a string into multiple strings
+according to a delimiter character,
+so `Split("a:b:c") == ["a", "b", "c"]` for example.
+In particular, `Split` will return a single element
 if the character does not appear in the string.
 So `Split("no colon", ':') == ["no colon"]`.
 
@@ -532,7 +506,7 @@ One for the `Success` and the other for `Failure`[^monad]
 [^monad]: If this sounds to you like a monad,
     then congratulations it is pretty close.
     If you have no idea what a monad is,
-    then congratulations you are one of the lucky 10,000!
+    then [congratulations](https://en.wikipedia.org/wiki/Monad_(functional_programming)) you are one of the [lucky 10,000](https://xkcd.com/1053/)!
 
 Update the existing function.
 The difference is the return value `: (result: Result<AwsKmsArn, string>)`.
@@ -603,7 +577,6 @@ We still have the error
 `value does not satisfy the subset constraints of 'AwsKmsArn'`,
 but we will deal with this next step.
 Dafny now believes us that `components[5]` will _always_ be valid.
-You can even ask Dafny `assert 7 < |components|;` and it will object.
 But pretty quickly we are going to introduce a pyramid of doom
 as we continually indent for more and more each such condition.
 
@@ -644,10 +617,11 @@ we will deal with that in the next step.
 
 ```
 
-`:-` is the Elephant symbol,
+`:-` is the Elephant operator,
 used here in a ["Let or Fail" expression](https://dafny.org/dafny/DafnyRef/DafnyRef#2139-let-or-fail-expression).
 You can think of this as a drastically simplified model
 of throwing exceptions.
+It is also similar to the `?` operator in Rust. 
 It will first look at the value to the right of the `:-`:
 * If it is a `Success`, it will extract the value and evaluate the expression that follows the `;`. In this case, that means the remaining lines of the function body.
 * If it is a `Failure`, it will propagate that error as the result
@@ -665,12 +639,6 @@ to hold a temporary variable.
 and it uses positive logic.
 This way you can express
 what you `Need` to be true to continue!
-
-We did all this work because of our specification.
-At the beginning of the talk we discussed annotating code with Duvet.
-This line would be a great candidate in most languages.
-But Dafny gives us more powerful tools
-so let's hold off on adding the annotation here.
 
 ## Step 10
 
@@ -858,7 +826,7 @@ There's just one new feature to explain:
 
 1. `"arn" <= identifier`
 Since Dafny treats `string` as a pure sequence of characters,
-`<=` means "starts with".
+`<=` means "is a prefix of".
 This is probably a little surprising,
 but turns out to be the most convenient meaning
 when using sequences in Dafny specifications.
@@ -1068,7 +1036,7 @@ take a look in `Index.dfy`.
 
 ## Extra Credit
 
-Here are a couple of bonus questions if you are hungry for more:
+Here are some bonus questions if you are hungry for more:
 
 1. Head over [here](next-steps.md) if you want to continue
   and complete the rest of the specification.
@@ -1099,3 +1067,32 @@ Here are a couple of bonus questions if you are hungry for more:
     ```bash
     make compile
     ```
+
+## Notes on the Initial State
+
+Here are some notes on the initial content of the `AwsKmsArnParsing.dfy` file:
+
+1. `include` is how Dafny includes other files.
+The file `include.dfy` is a helper file we added for you.
+
+1. `module` is how Dafny organizes code.
+This `module` is called `AwsKmsArnParsing`.
+Everything in `{}` is the contents of the `module`.
+Dafny does have ways to control what gets exported,
+but for now, lets just say everything is exported.
+
+1. `import` takes a named module
+and brings it into scope.
+
+1. `opened` takes all the exported names
+in the imported module and puts them in the current namespace.
+This is where we will get symbols that don't exist in this file,
+for example `Split` and `Join`.
+
+1. `{:options "-functionSyntax:4"}`
+allows us to use the simplest syntax for function declarations,
+which will be the default in Dafny 4 once it is released.
+You can safely ignore this,
+but if you are *really* interested:
+see [Controlling language features
+](https://dafny.org/dafny/DafnyRef/DafnyRef#sec-controlling-language) for more details.
