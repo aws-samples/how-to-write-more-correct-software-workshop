@@ -5,6 +5,13 @@ You can skip right to [the workshop](./instructions/steps.md) if you like.
 
 This content is currently a work in progress - use at your own risk, mind our dust, and stay tuned!
 
+## To learn more
+
+* [Dafny](http://dafny.org/), a programming language that formally verifies your implementation matches your specification
+* [Duvet](https://github.com/awslabs/duvet), a code quality tool for measuring how well your human-readable specification is covered in code
+* AWS Encryption SDK in Dafny: [https://github\.com/aws/aws\-encryption\-sdk\-dafny](https://github.com/aws/aws-encryption-sdk-dafny)
+* s2n: [https://github\.com/aws/s2n\-tls](https://github.com/aws/s2n-tls)
+
 ## Why does code have to be correct?
 
 If code is not correct it may not work.
@@ -26,7 +33,14 @@ Correct software improves
 
 The problem with correctness is it is an external property.
 You can read code, but you can not know by the code alone that it is correct.
+Sure you have tests, but how do you know that your tests are correct?
+How do you know that they are complete enough
+to test all the facets of correctness you care about?
 There are also a lot of people involved.
+If you have multiple implementations of the same idea,
+like the AWS Encryption SDK,
+making sure that all these different implementations
+do exactly the same thing is complicated.
 You may not have the same project in multiple languages,
 but you probably have multiple projects that interoperate.
 They all need to agree on shared idea of correctness.
@@ -72,13 +86,14 @@ not only has an implementation, but also a test.
 ## Persona: Developer
 
 For the developer writing the implementation
-Duvet maintains the punch list for you,
-you can focus on getting the best implementation for a given requirement.
+Duvet maintains the punch list for you.
+You can focus on getting the best implementation for a given requirement.
 As you write the code you can ask:
-Dose this code satisfy this requirement?
+Does this code satisfy this requirement?
 Does this test verify this behavior?
 If you need details,
-the document is right there with delicious cake-like background.
+the document is right there with all of the background
+on _why_ these choices were made.
 
 ![](./img/developer.png)
 
@@ -90,8 +105,8 @@ As you review the code the details are right there for you.
 You can jump right to the test and really focus on
 "Does this test convince me that the requirement MUST be met?"
 
-The reviewer can also updates the design.
-Running duvet on the new document
+The reviewer can also update the design.
+When Duvet is run on the new document,
 the developer is now on the hook
 to both implement and test these new requirements.
 
@@ -101,14 +116,14 @@ to both implement and test these new requirements.
 
 For the debugger coming to back to a project
 that they have not worked on in a long time,
-or are completely new to
+or are completely new to,
 Duvet annotations create a network effect.
-These annotations help give context to code
+These annotations help give context to code,
 especially if the code is not your preferred language.
 They link back to the design document
 to give background and more information.
 Since these annotations are bidirectional,
-are waypoints that let you move between
+they act as waypoints that let you move between
 the more abstract design document
 and the detailed implementation.
 
@@ -117,14 +132,14 @@ and the detailed implementation.
 ## When do you stop adding tests?
 
 But now we are done right?
-Every requirement has an implementations and a tests.
+Every requirement has an implementation and a test.
 They all have been reviewed.
 Duvet can only see that you TRIED to test.
 How does the reviewer know you tested ENOUGH?
 
 Duvet is a mechanism to connect the requirement to the source,
 but it leaves the quality and completeness of these links to humans.
-A tests makes sure that something is true once,
+A tests makes sure that something is true for one particular set of inputs,
 it does not make sure that something is *always* true.
 Todays edge case it tomorrow's issue.
 
@@ -132,7 +147,7 @@ Todays edge case it tomorrow's issue.
 
 Dafny is a *verification-aware* programming language.
 
-Formal verification let's us translate the Duvet annotation
+Formal verification lets us translate the Duvet annotation
 into a specification that says
 "for every string in the *universe* this must **always** be true".
 The Dafny verifier will use deductive reasoning to say "Yup, that is true".
@@ -144,13 +159,11 @@ It doesn't forget about edge cases
 because it checks every case.
 
 Since is very useful to have verified code,
-but only if you can run it
+but much more useful if you can run it,
 Dafny compiles to many other languages:
 Java, C#, JavaScript, Go, and more on the way!
 
 ![](./img/dafny.png)
-
-## Mechanisms!
 
 Putting this together we have a strong chain
 from the designer's intent right to what code is executing.
@@ -173,13 +186,6 @@ like serialization of binary formats.
 ## Let’s start!
 
 Just follow along with [the workshop instructions](./instructions/steps.md) right here on GitHub!
-
-## To learn more
-
-* [Dafny](http://dafny.org/), a programming language that formally verifies your implementation matches your specification
-* [Duvet](https://github.com/awslabs/duvet), a code quality tool for measuring how well your human-readable specification is covered in code
-* AWS Encryption SDK in Dafny: [https://github\.com/aws/aws\-encryption\-sdk\-dafny](https://github.com/aws/aws-encryption-sdk-dafny)
-* s2n: [https://github\.com/aws/s2n\-tls](https://github.com/aws/s2n-tls)
 
 ## Security
 
