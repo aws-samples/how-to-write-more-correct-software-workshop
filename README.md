@@ -21,7 +21,7 @@ How do you know that they are complete enough
 to test all the facets of correctness you care about?
 There are also a lot of people involved.
 If you have multiple implementations of the same idea,
-like the AWS Encryption SDK,
+like the [AWS Encryption SDK](https://docs.aws.amazon.com/encryption-sdk/latest/developer-guide/programming-languages.html),
 making sure that all these different implementations
 do exactly the same thing is complicated.
 You may not have the same project in multiple languages,
