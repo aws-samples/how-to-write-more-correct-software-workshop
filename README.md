@@ -5,13 +5,6 @@ You can skip right to [the workshop](./instructions/steps.md) if you like.
 
 This content is currently a work in progress - use at your own risk, mind our dust, and stay tuned!
 
-## To learn more
-
-* [Dafny](http://dafny.org/), a programming language that formally verifies your implementation matches your specification
-* [Duvet](https://github.com/awslabs/duvet), a code quality tool for measuring how well your human-readable specification is covered in code
-* AWS Encryption SDK in Dafny: [https://github\.com/aws/aws\-encryption\-sdk\-dafny](https://github.com/aws/aws-encryption-sdk-dafny)
-* s2n: [https://github\.com/aws/s2n\-tls](https://github.com/aws/s2n-tls)
-
 ## Why does code have to be correct?
 
 If code is not correct it may not work,
@@ -176,6 +169,13 @@ like serialization of binary formats.
 ## Let’s start!
 
 Just follow along with [the workshop instructions](./instructions/steps.md) right here on GitHub!
+
+## To learn more
+
+* [Dafny](http://dafny.org/), a programming language that formally verifies your implementation matches your specification
+* [Duvet](https://github.com/awslabs/duvet), a code quality tool for measuring how well your human-readable specification is covered in code
+* AWS Encryption SDK in Dafny: [https://github\.com/aws/aws\-encryption\-sdk\-dafny](https://github.com/aws/aws-encryption-sdk-dafny)
+* s2n: [https://github\.com/aws/s2n\-tls](https://github.com/aws/s2n-tls)
 
 ## Security
 
