@@ -14,20 +14,10 @@ This content is currently a work in progress - use at your own risk, mind our du
 
 ## Why does code have to be correct?
 
-If code is not correct it may not work.
-In which case you risk blocked builds.
+If code is not correct it may not work,
+in which case you risk blocked builds.
 What if it is incorrect but everything still works?
 This can be much worse.
-
-Let's keep it positive.
-Correct software improves
-
-* Operations -
-  Your software performs as you expect, more uptime.
-* Evolution -
-  You know what needs to change, faster development.
-* Security -
-  You can reason about security properties, better sleep.
 
 ## How hard can it be?
 
