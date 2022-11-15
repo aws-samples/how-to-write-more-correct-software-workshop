@@ -97,7 +97,7 @@ to both implement and test these new requirements.
 
 ![](./img/reviewer.png)
 
-## Persona: Debugger  consumer?
+## Persona: Debugger
 
 For the debugger coming to back to a project
 that they have not worked on in a long time,
